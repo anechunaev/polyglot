@@ -17,7 +17,7 @@ const optimalConfig = {
 	resolve: {
 		alias: {
 		},
-		extensions: ['.js', '.ts', '.mjs', '.json'],
+		extensions: ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.json'],
 	},
 	module: {
 		rules: [

@@ -16,10 +16,6 @@ This repository contains a Docker image that includes all the necessary dependen
 **Client-side:**
 - IE browser is not supported
 
-## Docker repository
-
-`bungubot/boilerplate-nodejs-minimal`
-
 ## How to build
 Production build:
 ```sh

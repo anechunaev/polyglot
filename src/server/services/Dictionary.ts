@@ -1,3 +1,7 @@
 export interface IDictionary {};
 
-export class Dictionary implements IDictionary {}
+export class Dictionary implements IDictionary {
+    constructor() {}
+
+    
+}

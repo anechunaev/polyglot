@@ -70,6 +70,12 @@ export class LettersService implements ILettersService {
         return this.state;
     }
 
+    public update(newLetters: Letters) {
+        Object.keys(newLetters).forEach(letterId => {
+            this.state[letterId] = newLetters[letterId];
+        });
+    }
+
     public getRandomLetters(count: number) {
         const res: LetterId[] = [];
         const letters = Object.keys(this.state).filter(letterId => this.state[letterId].located.in === "stock");

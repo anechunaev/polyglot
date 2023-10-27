@@ -1,4 +1,4 @@
-import type { GameId, UserId, IGameSettings, IGame } from './GameEngine';
+import type { GameId, UserId, IGameSettings, IGame, Player, Spectator } from './GameEngine';
 import type { IServiceBus } from './ServiceBus';
 import { GameEngine } from './GameEngine';
 import { ServiceBus } from './ServiceBus';
@@ -9,7 +9,7 @@ export interface IConnectParams {
     password?: string;
 };
 
-class GameManager {
+export class GameManager {
     private gameList: IGame[];
     private serviceBus: IServiceBus;
 
@@ -21,13 +21,13 @@ class GameManager {
         this.serviceBus = serviceBus;
     }
 
-    public createGame(settings: IGameSettings, serviceBus: IServiceBus) {
-        const game = new GameEngine(settings, this.serviceBus);
+    public createGame(serviceBus: IServiceBus, settings: IGameSettings, player: Player) {
+        const game = new GameEngine(this.serviceBus, settings, player );
 
         this.gameList.push(game);
     }
 
-    public join(params: IConnectParams) {
+    public join(params: IConnectParams, user: Spectator | Player) {
         const game = this.gameList.find(({ id }) => id === params.gameId);
 
         if (!game) {
@@ -41,7 +41,7 @@ class GameManager {
                 console.error("The game already have maximum players");
             }
 
-            game.join(params.password, user);
+            game.join(user, params.password);
         }
     }
 }

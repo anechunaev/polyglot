@@ -1,0 +1,1 @@
+export const PLAYER_MAX_LETTERS_CAPACITY = 7;

@@ -7,6 +7,8 @@ export interface IEncapsulatedProps extends IProps {
     classes: Record<string, string>;
 }
 
+const foo = 'bar';
+
 function GreetingsView({ classes }: IEncapsulatedProps) {
     return (
         <section className={classes.container}>

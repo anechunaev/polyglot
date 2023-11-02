@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Greetings from './components/Greetings';
 import { EventBus } from './services/eventBus';
 import { EVENTS } from '../constants';
 
@@ -30,14 +31,14 @@ function App() {
     }, []);
 
     return (
-        <div className='app'>
-            <h1>Hello, world</h1>
+        <React.StrictMode>
+            <Greetings />
             <button onClick={onCreateGame}>Create Game</button>
             <br />
             {gameList.map(gameId => {
                 return <div>{gameId}</div>
             })}
-        </div>
+        </React.StrictMode>
     );
 }
 

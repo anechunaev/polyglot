@@ -1,5 +1,6 @@
 const path = require('node:path');
 const TerserPlugin = require("terser-webpack-plugin");
+const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 
 const optimalConfig = {
 	target: 'node18',
@@ -17,12 +18,28 @@ const optimalConfig = {
 	resolve: {
 		alias: {
 		},
-		extensions: ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.json'],
+		extensions: [
+			'.js',
+			'.jsx',
+			'.ts',
+			'.tsx',
+			'.mjs',
+			'.json',
+			'.sass',
+			'.scss',
+			'.css',
+			'.png',
+			'.jpg',
+			'.jpeg',
+			'.gif',
+			'.svg',
+			'.webp',
+		],
 	},
 	module: {
 		rules: [
 			{
-				test: /\.m?(j|t)s$/,
+				test: /\.m?(j|t)sx?$/,
 				exclude: /node_modules/i,
 				use: {
 					loader: "swc-loader",
@@ -32,6 +49,9 @@ const optimalConfig = {
 	},
 	mode: 'production',
 	plugins: [
+		new WebpackManifestPlugin({
+			publicPath: '/dist',
+		}),
 	],
 	optimization: {
 		nodeEnv: false,

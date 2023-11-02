@@ -1,6 +1,8 @@
 const path = require('node:path');
 const nodeExternals = require('webpack-node-externals');
 const { createWebpackConfig } = require('../base/createWebpackConfig');
+const styleLoader = require('../base/styleLoader');
+const imageLoader = require('../base/imageLoader');
 
 module.exports = createWebpackConfig({
 	mode: 'development',
@@ -9,5 +11,15 @@ module.exports = createWebpackConfig({
 		path: path.resolve(__dirname, '../../dist/server'),
 		filename: 'index.js',
 	},
-	externals: [nodeExternals()]
+	rules: [
+		styleLoader({
+			isScss: true,
+			prodEnv: false,
+			isServer: true,
+		}),
+		imageLoader({
+			isServer: true,
+		}),
+	],
+	externals: [nodeExternals()],
 });

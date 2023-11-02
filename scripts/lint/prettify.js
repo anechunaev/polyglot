@@ -6,6 +6,7 @@ const prettierHelpers = require('../helpers/prettier');
 async function run() {
     try {
         const files = await gitHelpers.getCurrentChanges();
+        if (!files.length) return;
         process.exitCode = await prettierHelpers.prettify(files.join(' '));
         await gitHelpers.stageFiles(files.join(' '));
     } catch (errorResponse) {

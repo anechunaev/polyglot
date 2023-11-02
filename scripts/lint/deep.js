@@ -6,6 +6,7 @@ const eslintHelpers = require('../helpers/eslint');
 async function run() {
     try {
         const files = await gitHelpers.getChangesFromMergeBase();
+        if (!files.length) return;
         process.exitCode = await eslintHelpers.lint(files.join(' '));
     } catch (errorResponse) {
         process.exitCode = 127;

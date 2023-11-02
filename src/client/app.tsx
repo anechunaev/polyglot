@@ -5,18 +5,15 @@ import NoSSR from './components/NoSSR';
 import GameList from './components/GameList';
 
 function App() {
-    return (
-        <React.StrictMode>
-            <Greetings />
-            <Timer
-                seconds={180}
-                remainSeconds={180}
-            />
-            <NoSSR>
-                <GameList />
-            </NoSSR>
-        </React.StrictMode>
-    );
+	return (
+		<React.StrictMode>
+			<Greetings />
+			<Timer seconds={180} remainSeconds={180} />
+			<NoSSR>
+				<GameList />
+			</NoSSR>
+		</React.StrictMode>
+	);
 }
 
 export default App;

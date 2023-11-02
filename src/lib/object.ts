@@ -16,6 +16,7 @@ export function deepClone<T>(obj: T): T {
 
 	if (typeof obj === 'object') {
 		return Object.keys(obj).reduce((newObj, key) => {
+			// eslint-disable-next-line no-param-reassign
 			(newObj as Record<string, any>)[key] = deepClone((obj as Record<string, any>)[key]);
 			return newObj;
 		}, {} as T);
@@ -33,10 +34,11 @@ export function deepMerge<T extends object>(target: T, ...sources: Partial<T>[])
 	const source = sources.shift();
 
 	if (isObject(target) && isObject(source)) {
+		// eslint-disable-next-line no-restricted-syntax
 		for (const key in source) {
 			if (isObject((source as Record<string, any>)[key])) {
 				if (!(target as Record<string, any>)[key]) Object.assign(target, { [key]: {} });
-				deepMerge((target as Record<string, any>)[key], (source  as Record<string, any>)[key]);
+				deepMerge((target as Record<string, any>)[key], (source as Record<string, any>)[key]);
 			} else {
 				Object.assign(target, { [key]: (source as Record<string, any>)[key] });
 			}

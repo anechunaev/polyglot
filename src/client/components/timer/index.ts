@@ -1,4 +1,8 @@
-import { Model } from './model';
-import { View } from './view';
+import Model from './model';
+import View, { IProps as IViewProps } from "./view";
+import withStyles from "../withStyles";
+import styles from './styles.scss';
 
-export default Model(View);
+const Timer = Model(withStyles<IViewProps>(View, styles));
+
+export default Timer;

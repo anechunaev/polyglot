@@ -5,4 +5,5 @@
 
 body {
     @include theme.font($variant: 'regular');
+    color: theme.$color-text-default;
 }

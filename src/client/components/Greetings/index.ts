@@ -1,3 +1,7 @@
-import View from "./view";
+import View, { IProps as IViewProps } from "./view";
+import withStyles from "../withStyles";
+import styles from './styles.scss';
 
-export default View;
+const Greetings = withStyles<IViewProps>(View, styles);
+
+export default Greetings;

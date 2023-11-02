@@ -7,7 +7,7 @@ async function run() {
     try {
         const files = await gitHelpers.getCurrentChanges();
         process.exitCode = await prettierHelpers.prettify(files.join(' '));
-        await gitHelpers.addAll();
+        await gitHelpers.stageFiles(files.join(' '));
     } catch (errorResponse) {
         process.exitCode = 127;
         throw error;

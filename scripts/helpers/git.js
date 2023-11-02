@@ -31,8 +31,8 @@ async function getCurrentChanges() {
     }
 }
 
-async function addAll() {
-    return await cp.exec('git add .');
+async function stageFiles(files = '.') {
+    return await cp.exec(`git add ${files}`);
 }
 
 async function getMainBranch() {
@@ -60,8 +60,8 @@ async function getCurrentBranch() {
     });
 }
 
-async function getMergeBase() {
-    const currentBranch = await getCurrentBranch();
+async function getMergeBase(curBranch) {
+    const currentBranch = curBranch ?? await getCurrentBranch();
     const mainBranch = await getMainBranch();
 
     return new Promise((resolve, reject) => {
@@ -75,10 +75,39 @@ async function getMergeBase() {
     });
 }
 
+async function getChangesFromMergeBase() {
+    const currentBranch = await getCurrentBranch();
+    const mergeBase = await getMergeBase(currentBranch);
+
+    return new Promise((resolve, reject) => {
+        cp.exec(`git diff --diff-filter=a --name-status ${currentBranch} ${mergeBase}`, (error, stdout) => {
+            if (error) {
+                return reject(error);
+            }
+
+            resolve(
+                stdout
+                    .split('\n')
+                    .map(line => {
+                        const parts = line.split(/\s+/);
+                        return parts[1];
+                    })
+                    .filter(Boolean)
+                    .map(line => line.trim())
+                    .filter(file =>
+                        constants.ALLOWED_EXTENSIONS.has(path.extname(file))
+                        && file.startsWith('src/')
+                    )
+            );
+        });
+    });
+}
+
 module.exports = {
     getCurrentChanges,
-    addAll,
+    stageFiles,
     getMainBranch,
     getCurrentBranch,
     getMergeBase,
+    getChangesFromMergeBase,
 };

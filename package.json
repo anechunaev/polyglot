@@ -13,8 +13,10 @@
 		"docker:build": "docker build . -t boilerplate-react-typescript-nodejs",
 		"docker:run": "docker run --name boilerplate-react-typescript-nodejs --rm -p 8080:8080 -it boilerplate-react-typescript-nodejs",
 		"start": "node ./dist/server/index.js",
-		"lint": "eslint ./src",
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"lint": "node ./scripts/lint/default.js && node ./scripts/lint/prettify.js",
+		"lint:deep": "node ./scripts/lint/deep.js && node ./scripts/lint/prettify.js",
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"prepare": "node ./scripts/hooks/install.js"
 	},
 	"keywords": [],
 	"license": "MIT",

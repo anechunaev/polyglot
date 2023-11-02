@@ -1,4 +1,5 @@
 const path = require('node:path');
+const nodeExternals = require('webpack-node-externals');
 const { createWebpackConfig } = require('../base/createWebpackConfig');
 
 module.exports = createWebpackConfig({
@@ -8,4 +9,5 @@ module.exports = createWebpackConfig({
 		path: path.resolve(__dirname, '../../dist/server'),
 		filename: 'index.js',
 	},
+	externals: [nodeExternals()]
 });

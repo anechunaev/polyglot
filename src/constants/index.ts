@@ -1,0 +1,18 @@
+export const PLAYER_MAX_LETTERS_CAPACITY = 7;
+export const DEFAULT_FIELD_SIZE = {
+    x: 15,
+    y: 15
+};
+
+export const DEFAULT_TIMER_MS = 60 * 2 * 1000; // 2 min
+
+export const PLAYER_DEFAULT_LETTERS_COUNT = 7;
+
+export enum EVENTS {
+    CREATE_GAME = "CREATE_GAME",
+    JOIN_GAME = "JOIN_GAME",
+    UPDATE_GAME_LIST = "UPDATE_GAME_LIST",
+    ON_TIMER_TICK = "ON_TIMER_TICK",
+    ON_FINISH_GAME = "ON_FINISH_GAME",
+    ADD_SESSION_ID =  "ADD_SESSION_ID",
+};

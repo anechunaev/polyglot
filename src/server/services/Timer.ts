@@ -4,8 +4,8 @@ export interface ITimerInstance {
 }
 
 export class Timer implements ITimerInstance {
-    private time: number;
-    private total: number;
+    public time: number;
+    public total: number;
     private onUpdateTime: (time: number, total: number) => void;
     private onFinish: () => void;
 

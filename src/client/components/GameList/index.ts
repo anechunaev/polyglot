@@ -1,7 +1,8 @@
+import Model from './model';
 import View, { IProps as IViewProps } from "./view";
 import withStyles from "../withStyles";
 import styles from './styles.scss';
 
-const Greetings = withStyles<IViewProps>(View, styles);
+const GameList = Model(withStyles<IViewProps>(View, styles));
 
-export default Greetings;
+export default GameList;

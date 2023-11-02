@@ -18,7 +18,7 @@ const template = ({ title, app, scripts, styles }: any) => `
 	<body>
 		<div id="app">${app}</div>
 		${Array.isArray(scripts)
-			? scripts.map(script => `<script src="${script}" async></script>`).join('')
+			? scripts.map(script => `<script src="${script}" defer></script>`).join('')
 			: ''}
 	</body>
 </html>`;

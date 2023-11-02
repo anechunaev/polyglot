@@ -1,42 +1,22 @@
-import type { ITimerInstance } from './Timer';
-import type { IServiceBus } from './ServiceBus';
+import type { Emit } from './GameManager';
+import uuid4 from "uuid4";
+
 import type { LetterId, Letters, ILettersService } from './Letters';
 import type { Field } from './helpers/generate_field_schema';
-
+import type { UserId, IPlayer, ISpectator, IUser } from './User';
+import { Player } from './User';
 import { generateFieldSchema } from './helpers/generate_field_schema';
-
-import { PLAYER_MAX_LETTERS_CAPACITY } from '../constants';
+import { EVENTS, DEFAULT_TIMER_MS } from '../../constants';
+import { PLAYER_MAX_LETTERS_CAPACITY } from '../../constants';
 import { Timer } from './Timer';
 import { LettersService } from './Letters';
 import letterConfig from '../config/letters_rus.json';
-
-export type UserId = string;
 export type GameId = string;
 
 export interface IGameSettings {
     timer: number;
-    max_players: number;
     max_score: number;
-    password?: string;
 };
-
-export interface User {
-    id: UserId;
-    role: string;
-    nickname: string;
-};
-
-export interface Player extends User {
-    role: "participant";
-    secret: string;
-    score: number;
-    turn: number;
-    letters: LetterId[];
-};
-
-export interface Spectator extends User {
-    role: "spectator";
-}
 
 
 export interface Word {
@@ -55,48 +35,46 @@ export interface Turn {
 
 export interface IState {
     game: {
-        id: GameId;
         active_player: UserId;
         players: {
-            [playerId: string]: Player
+            [playerId: string]: IPlayer
         };
-        spectators: User[];
+        spectators: IUser[];
         letters: Letters;
         field: Field
     },
-    timer: ITimerInstance;
+    timer: {
+        time: number;
+        total: number;
+    };
 }
 
 export interface IGame {
     nextTurn: (turn: Turn, secret: string) => void;
-    join: (player: Spectator | Player, pwd?: string) => void;
-    id: GameId;
-    is_full: boolean;
-    password?: string;
+    canJoin: (max_players: number) => boolean;
+    join: (player: ISpectator | IPlayer, pwd?: string) => void;
+    getState: () => IState;
 };
-
-const createGameId = () => 'test_game_id_123';
-const createId = () => 'test_id_123';
-const createSecret = () => 'test_secret_123';
 
 export class GameEngine implements IGame {
     private state: IState;
     private letters: ILettersService;
-    private max_players: number;
+    private id: GameId;
     private max_score: number;
-    private serviceBus: IServiceBus;
+    private emit: Emit;
 
-    public id: GameId;
     public password?: string;
-    public is_full: boolean;
 
-    constructor(serviceBus: IServiceBus, settings: IGameSettings, player: Player) {
-        const timer = new Timer(settings.timer, this.onTimerTick, this.onTimerEnd);
+    constructor(emit: Emit, id: GameId, settings: IGameSettings, playerName: IPlayer["name"]) {
+        const timer = new Timer(settings.timer || DEFAULT_TIMER_MS, this.onTimerTick, this.onTimerEnd);
         const letters = new LettersService(letterConfig);
+
+        const player = new Player(letters, playerName);
+
+        this.id = id;
 
         this.state = {
             game: {
-                id: createGameId(),
                 active_player: player.id,
                 players: {
                     [player.id]: player
@@ -105,17 +83,15 @@ export class GameEngine implements IGame {
                 letters: letters.getLetters(),
                 field: generateFieldSchema()
             },
-            timer: timer
+            timer: {
+                time: timer.time,
+                total: timer.total
+            }
         };
 
         this.letters = letters;
-        this.id = createId();
-        this.password = settings.password;
-        this.max_players = settings.max_players;
         this.max_score = settings.max_score;
-
-        this.is_full = false;
-        this.serviceBus = serviceBus;
+        this.emit = emit;
     }
 
     public onTimerEnd() {
@@ -124,7 +100,7 @@ export class GameEngine implements IGame {
                 playerId: this.state.game.active_player,
                 words: []
             },
-            this.state.game.players[this.state.game.active_player].secret
+            this.state.game.players[this.state.game.active_player].secret!
         )
     }
 
@@ -144,7 +120,7 @@ export class GameEngine implements IGame {
         if (secret !== player.secret) {
             console.error("Not a valid user for the current turn");
         }
-        const new_secret = createSecret();
+        const new_secret = uuid4();
 
         if (turn.words.length) {
 
@@ -206,23 +182,26 @@ export class GameEngine implements IGame {
     }
 
     public onTimerTick(time: number, total: number) {
-        this.serviceBus.emit(this.state.game.id, { type: "ON_TIMER_TICK", value: { time, total } })
+        this.emit(this.id, EVENTS.ON_TIMER_TICK, { time, total });
     }
 
     public getState() {
         return this.state;
     }
 
-    public finish(player?: Player) {
-        this.serviceBus.emit(this.state.game.id, {type: "ON_FINISH_GAME", value: {winner: player?.nickname}});
+    public finish(player?: IPlayer) {
+        this.emit(this.id, EVENTS.ON_FINISH_GAME, { winner: { name: player?.name, score: player?.score } });
     }
 
-    public join(user: Spectator | Player, password?: string) {
+    public canJoin(max_players: number) {
+        return !(max_players === Object.keys(this.state.game.players).length);
+    }
+
+    public join(user: ISpectator | IPlayer, password?: string) {
         if (user.role === "spectator") {
             this.state.game.spectators.push(user);
         } else {
             this.state.game.players[user.id] = user;
-            this.is_full = this.max_players === Object.keys(this.state.game.players).length;
         }
     }
 }

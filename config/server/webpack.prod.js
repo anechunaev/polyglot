@@ -1,4 +1,5 @@
 const path = require('node:path');
+const nodeExternals = require('webpack-node-externals');
 const { createWebpackConfig } = require('../base/createWebpackConfig');
 const styleLoader = require('../base/styleLoader');
 const imageLoader = require('../base/imageLoader');
@@ -19,4 +20,5 @@ module.exports = createWebpackConfig({
 			isServer: true,
 		}),
 	],
+	externals: [nodeExternals()],
 });

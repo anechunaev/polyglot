@@ -26,8 +26,6 @@ export interface ILetterConfig {
     price: number;
 }
 
-export const createLetterId = () => "letter_test_id_123";
-
 export interface ILettersService {
     getLetters: () => Letters;
     getRandomLetters: (count: number) => LetterId[];
@@ -37,17 +35,17 @@ export class LettersService implements ILettersService {
     private state: Letters;
 
     constructor(config: ILetterConfig[]) {
-        this.state = this.initState(config);
+        this.state = this.initState([...config]);
     }
 
     private initState(config: ILetterConfig[]) {
         const letters: Letters = {};
+        let index = 0;
 
         while (config.length) {
             const letter = config.shift() as ILetterConfig;
-            const id = createLetterId();
 
-            letters[id] = {
+            letters[index] = {
                 value: letter.name,
                 price: letter.price,
                 located: {
@@ -55,6 +53,8 @@ export class LettersService implements ILettersService {
                 }
 
             }
+
+            index++;
 
             --letter.count;
 
@@ -81,7 +81,7 @@ export class LettersService implements ILettersService {
         const letters = Object.keys(this.state).filter(letterId => this.state[letterId].located.in === "stock");
 
         while (count) {
-            const letterId = letters[Math.floor((Math.random()*letters.length))];
+            const letterId = letters[Math.floor((Math.random() * letters.length))];
             const letter = this.state[letterId];
             letter.located.in = "player";
 

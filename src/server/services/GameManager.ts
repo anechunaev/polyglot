@@ -1,7 +1,13 @@
-import type { GameId, UserId, IGameSettings, IGame, Player, Spectator } from './GameEngine';
-import type { IServiceBus } from './ServiceBus';
+import { Server, Socket } from 'socket.io';
+import uuid4 from "uuid4";
+import type { UserId, IPlayer, ISpectator, IUser } from './User';
+import type { GameId, IGameSettings, IGame } from './GameEngine';
+import { EVENTS } from '../../constants';
 import { GameEngine } from './GameEngine';
-import { ServiceBus } from './ServiceBus';
+
+export type ClientId = string;
+export type SessionId = string;
+
 
 export interface IConnectParams {
     gameId: GameId;
@@ -9,39 +15,134 @@ export interface IConnectParams {
     password?: string;
 };
 
+export interface IPayload {
+    sessionId: SessionId;
+}
+
+export interface ICreateGamePayload extends IPayload {
+    game: {
+        settings: ISettings;
+        playerName: IPlayer["name"];
+    }
+};
+
+export interface IJoinGamePayload extends IPayload {
+    params: IConnectParams;
+    user: ISpectator | IPlayer;
+};
+
+export interface Subscriptions {
+    [gameId: GameId]: ClientId[]
+};
+
+export interface Sessions {
+    [sessionId: SessionId]: Socket;
+}
+
+export type Emit = (gameId: GameId, eventName: keyof typeof EVENTS, payload: Record<string, any>) => void;
+
+export interface ISettings extends IGameSettings {
+    password?: string;
+    max_players: number;
+};
+
 export class GameManager {
-    private gameList: IGame[];
-    private serviceBus: IServiceBus;
+    private games: {
+        [gameId: GameId]: {
+            instance: IGame;
+            password?: string;
+            max_players: number;
+        }
+    };
+    private gameIds: GameId[];
+    private subscription: Subscriptions;
+    private sessions: Sessions;
+    private server: Server;
 
-    constructor() {
-        this.gameList = [];
+    constructor(server: Server) {
+        this.games = {};
+        this.gameIds = [];
+        this.subscription = {};
+        this.sessions = {};
 
-        const serviceBus = new ServiceBus();
+        this.server = server;
+        this.server.on("connection", (ws: Socket) => {
+            const session = ws.handshake.headers["x-session-id"];
 
-        this.serviceBus = serviceBus;
+            this.sessions[session as string] = ws;
+
+            ws.on(EVENTS.CREATE_GAME, (payload: ICreateGamePayload) => {
+                const game = this.createGame(payload.sessionId, payload.game);
+
+                ws.emit(EVENTS.CREATE_GAME, game.getState());
+            });
+
+            ws.on(EVENTS.JOIN_GAME, (payload: IJoinGamePayload) => {
+                this.join(payload);
+            });
+        });
     }
 
-    public createGame(serviceBus: IServiceBus, settings: IGameSettings, player: Player) {
-        const game = new GameEngine(this.serviceBus, settings, player );
-
-        this.gameList.push(game);
+    private subscribe(gameId: GameId, sessionId: SessionId) {
+        if (this.subscription[gameId]) {
+            this.subscription[gameId].push(sessionId);
+        } else {
+            this.subscription[gameId] = [sessionId];
+        }
     }
 
-    public join(params: IConnectParams, user: Spectator | Player) {
-        const game = this.gameList.find(({ id }) => id === params.gameId);
+    public emit(gameId: GameId, eventName: keyof typeof EVENTS, payload: Record<string, any>) {
+        const sessionIds = this.subscription[gameId];
+
+        sessionIds.forEach(sessionId => {
+            const session = this.sessions[sessionId];
+
+            session.emit(eventName, payload);
+        });
+    }
+
+    private emitAll(eventName: keyof typeof EVENTS, payload: Record<string, any>) {
+        Object.keys(this.sessions).forEach(sessionId => {
+            this.sessions[sessionId].emit(eventName, payload);
+        });
+    }
+
+    public createGame(sessionId: SessionId, { settings, playerName }: { settings: ISettings, playerName: IPlayer["name"] }) {
+        const gameId = uuid4();
+
+        const game = new GameEngine(this.emit, gameId, settings, playerName);
+        this.subscribe(gameId, sessionId)
+
+        this.games[gameId] = {
+            instance: game,
+            password: settings.password,
+            max_players: settings.max_players
+        };
+
+        this.gameIds.push(gameId);
+        this.emitAll(EVENTS.UPDATE_GAME_LIST, this.gameIds);
+
+        return game;
+    }
+
+    public join({ sessionId, params, user }: IJoinGamePayload) {
+        const game = this.games[params.gameId];
 
         if (!game) {
             console.error("Cannot find game with id: ", params.gameId);
         } else {
             if (params.password !== game?.password) {
                 console.error("Password is incorrect");
+                return;
             }
 
-            if (game?.is_full) {
+            if (game.instance.canJoin(game.max_players)) {
                 console.error("The game already have maximum players");
+                return;
             }
 
-            game.join(user, params.password);
+            this.subscribe(params.gameId, sessionId);
+            game.instance.join(user, params.password);
         }
     }
 }

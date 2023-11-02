@@ -99,6 +99,7 @@ function createWebpackConfig({
 	rules = [],
 	plugins = [],
 	optimization = {},
+	externals = []
 }) {
 	const config = Object.assign({}, optimalConfig);
 
@@ -113,6 +114,9 @@ function createWebpackConfig({
 	config.optimization = Object.assign({}, mode === 'production' ? prodOptimization : devOptimization, optimization);
 	config.devtool = mode === 'production' ? false : 'source-map';
 
+	if (externals.length) {
+		config.externals = externals;
+	}
 	return config;
 }
 

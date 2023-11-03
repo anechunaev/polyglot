@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Button from '../Button';
 
 export interface IProps {
 	onCreateGame: () => void;
@@ -12,9 +13,10 @@ export interface IEncapsulatedProps extends IProps {
 function View(props: IEncapsulatedProps) {
 	return (
 		<div className={props.classes.container}>
-			<button type="button" onClick={props.onCreateGame}>
-				Create Game
-			</button>
+			<Button onClick={props.onCreateGame}>Create Game</Button>
+			<Button disabled onClick={props.onCreateGame}>
+				Disabled button without hover, doesn&quot;t create a game
+			</Button>
 			<br />
 			{props.gameList.map((gameId) => (
 				<p key={gameId}>{gameId}</p>

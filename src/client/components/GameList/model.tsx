@@ -3,39 +3,58 @@ import type { IProps as IViewProps } from './view';
 import { EventBus } from '../../services/eventBus';
 import { EVENTS } from '../../../constants';
 
-export interface IProps {}
+export interface IProps { }
 
 function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProps> {
-	return function GameListModel() {
-		const [gameList, updateGameList] = React.useState<string[]>([]);
-		const eventBus = React.useMemo(() => new EventBus(), []);
+    return function GameListModel(_props: IProps) {
+        const [gameList, updateGameList] = React.useState<string[]>(() => []);
+        const [timer, setTimer] = React.useState<{ time?: number; total?: number; }>({});
+        const eventBus = new EventBus();
 
-		eventBus.connect();
+        eventBus.connect();
 
-		eventBus.on(EVENTS.CREATE_GAME, (payload: any) => {
-			// eslint-disable-next-line no-console
-			console.log('New game was created with state', payload);
-		});
+        eventBus.on(EVENTS.CREATE_GAME, (payload: any) => {
+            // eslint-disable-next-line no-console
+            console.log('New game was created with state', payload);
+        });
 
-		eventBus.on(EVENTS.UPDATE_GAME_LIST, (payload: string[]) => {
-			updateGameList(payload);
-		});
+        eventBus.on(EVENTS.UPDATE_GAME_LIST, (payload: string[]) => {
+            updateGameList(() => payload);
+        });
 
-		const onCreateGame = React.useCallback(() => {
-			eventBus.emit(EVENTS.CREATE_GAME, {
-				game: {
-					settings: {
-						max_players: 2,
-					},
-					player: {
-						name: 'jpig',
-					},
-				},
-			});
-		}, [eventBus]);
+        eventBus.on(EVENTS.ON_TIMER_TICK, (payload: any) => {
+            setTimer(() => payload);
+        });
 
-		return <View onCreateGame={onCreateGame} gameList={gameList} />;
-	};
+        const onStartGame = React.useCallback((gameId: string) => {
+            eventBus.emit(EVENTS.GAME_START, { gameId });
+        }, [eventBus]);
+
+        const onCreateGame = React.useCallback(() => {
+            eventBus.emit(EVENTS.CREATE_GAME, {
+                game: {
+                    settings: {
+                        max_players: 2
+                    },
+                    player: {
+                        name: "jpig"
+                    }
+                }
+            });
+        }, [eventBus]);
+
+        const onNextTurn = React.useCallback(() => { }, []);
+
+        return (
+            <View
+                onStartGame={onStartGame}
+                onNextTurn={onNextTurn}
+                onCreateGame={onCreateGame}
+                gameList={gameList}
+                timer={{ remainSeconds: timer.time!, seconds: timer.total! }}
+            />
+        );
+    };
 }
 
 export default Model;

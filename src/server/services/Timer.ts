@@ -1,6 +1,8 @@
 
 export interface ITimerInstance {
     start: () => void;
+    time: number;
+    total: number;
 }
 
 export class Timer implements ITimerInstance {
@@ -17,16 +19,15 @@ export class Timer implements ITimerInstance {
     }
 
     public start() {
-        while (this.time !== 0) {
-            setInterval(() => {
-                --this.time;
+        const intervalId = setInterval(() => {
+            --this.time;
 
-                if (this.time > 0) {
-                    this.onUpdateTime(this.time, this.total);
-                } else {
-                    this.onFinish();
-                }
-            }, 1000);
-        }
+            if (this.time > 0) {
+                this.onUpdateTime(this.time, this.total);
+            } else {
+                this.onFinish();
+                clearInterval(intervalId);
+            }
+        }, 1000);
     }
 }

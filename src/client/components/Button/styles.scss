@@ -1,7 +1,7 @@
 @use '../../theme' as *;
 
-.container {
-	display: flex;
+.button {
+	display: inline-flex;
 	align-items: center;
 	justify-content: center;
 	flex-shrink: 0;

@@ -1,9 +1,16 @@
 import * as React from 'react';
 import Button from '../Button';
+import Timer from '../TurnTimer';
 
 export interface IProps {
-	onCreateGame: () => void;
-	gameList: string[];
+    timer: {
+        remainSeconds: number;
+        seconds: number;
+    }
+    onCreateGame: () => void;
+    onNextTurn: (gameId: string) => void;
+    onStartGame: (gameId: string) => void;
+    gameList: string[];
 }
 
 export interface IEncapsulatedProps extends IProps {
@@ -11,18 +18,25 @@ export interface IEncapsulatedProps extends IProps {
 }
 
 function View(props: IEncapsulatedProps) {
-	return (
-		<div className={props.classes.container}>
-			<Button onClick={props.onCreateGame}>Create Game</Button>
-			<Button disabled onClick={props.onCreateGame}>
-				Disabled button without hover, doesn&quot;t create a game
-			</Button>
-			<br />
-			{props.gameList.map((gameId) => (
-				<p key={gameId}>{gameId}</p>
-			))}
-		</div>
-	);
+    return (
+        <div>
+            <Button
+                onClick={props.onCreateGame}
+            >
+                Create a Game
+            </Button>
+            <br />
+            {props.gameList.map(gameId => {
+                return (
+                    <div key={gameId}>
+                        <Timer {...props.timer} />
+                        <span>{gameId} </span>
+                        <Button onClick={() => props.onStartGame(gameId)}>Start </Button>
+                    </div>
+                );
+            })}
+        </div>
+    );
 }
 
 export default View;

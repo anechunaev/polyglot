@@ -1,6 +1,6 @@
 import { Server, Socket } from 'socket.io';
 import uuid4 from "uuid4";
-import type { UserId, IPlayer, ISpectator, IUser } from './User';
+import type { UserId, IPlayer, ISpectator } from './User';
 import type { GameId, IGameSettings, IGame } from './GameEngine';
 import { EVENTS } from '../../constants';
 import { GameEngine } from './GameEngine';
@@ -29,6 +29,10 @@ export interface ICreateGamePayload extends IPayload {
 export interface IJoinGamePayload extends IPayload {
     params: IConnectParams;
     user: ISpectator | IPlayer;
+};
+
+export interface IStartGamePayload extends IPayload {
+    gameId: GameId;
 };
 
 export interface Subscriptions {
@@ -66,10 +70,14 @@ export class GameManager {
         this.sessions = {};
 
         this.server = server;
-        this.server.on("connection", (ws: Socket) => {
-            const session = ws.handshake.headers["x-session-id"];
+        this.emit = this.emit.bind(this);
 
-            this.sessions[session as string] = ws;
+        this.server.on("connection", (ws: Socket) => {
+            const sessionId = ws.handshake.headers["x-session-id"];
+
+            this.sessions[sessionId as string] = ws;
+
+            console.log(`Client with session id ${sessionId} was connected`);
 
             ws.on(EVENTS.CREATE_GAME, (payload: ICreateGamePayload) => {
                 const game = this.createGame(payload.sessionId, payload.game);
@@ -79,6 +87,10 @@ export class GameManager {
 
             ws.on(EVENTS.JOIN_GAME, (payload: IJoinGamePayload) => {
                 this.join(payload);
+            });
+
+            ws.on(EVENTS.GAME_START, (payload: IStartGamePayload) => {
+                this.games[payload.gameId].instance.start();
             });
         });
     }
@@ -91,7 +103,7 @@ export class GameManager {
         }
     }
 
-    public emit(gameId: GameId, eventName: keyof typeof EVENTS, payload: Record<string, any>) {
+    public emit = (gameId: GameId, eventName: keyof typeof EVENTS, payload: Record<string, any>) => {
         const sessionIds = this.subscription[gameId];
 
         sessionIds.forEach(sessionId => {

@@ -4,7 +4,7 @@ export const DEFAULT_FIELD_SIZE = {
     y: 15
 };
 
-export const DEFAULT_TIMER_MS = 60 * 2 * 1000; // 2 min
+export const DEFAULT_TIMER_VALUE_SEC = 60 * 2 ; // 2 min
 
 export const PLAYER_DEFAULT_LETTERS_COUNT = 7;
 
@@ -15,4 +15,5 @@ export enum EVENTS {
     ON_TIMER_TICK = "ON_TIMER_TICK",
     ON_FINISH_GAME = "ON_FINISH_GAME",
     ADD_SESSION_ID =  "ADD_SESSION_ID",
+    GAME_START = "GAME_START"
 };

@@ -2,40 +2,40 @@ import * as React from 'react';
 import type { IProps as IViewProps } from './view';
 
 export interface IProps {
-	seconds: number;
-    remainSeconds: number;
+	ms: number;
+    remainMs: number;
     threshold?: number;
 }
 
 function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProps> {
-	return function TimerModel({ seconds, remainSeconds, threshold = 30 }: IProps) {
-        const [ remainSecondsState, setRemainSecondsState ] = React.useState(remainSeconds);
-        const [ prevSeconds, setPrevSeconds ] = React.useState<null | number>(null);
-        const [ prevRemainSeconds, setPrevRemainSeconds ] = React.useState<null | number>(null);
+	return function TimerModel({ ms = 0, remainMs = 0, threshold = 30 }: IProps) {
+        const [ remainMsState, setRemainMsState ] = React.useState(remainMs);
+        const [ prevMs, setPrevMs ] = React.useState<null | number>(null);
+        const [ prevRemainMs, setPrevRemainMs ] = React.useState<null | number>(null);
     
         React.useEffect(() => {
             const intervalId = setInterval(() => {
-                if (remainSecondsState > 0) {
-                    setRemainSecondsState(remainSecondsState - 1);
+                if (remainMsState > 0) {
+                    setRemainMsState(remainMsState - 1);
                 } else {
-                    setRemainSecondsState(0);
+                    setRemainMsState(0);
                     clearInterval(intervalId);
                 }
             }, 1000);
     
             return () => clearInterval(intervalId);
-        }, [ remainSecondsState ]);
+        }, [ remainMsState ]);
     
-        if (seconds !== prevSeconds || remainSeconds !== prevRemainSeconds) {
-            setRemainSecondsState(remainSeconds);
-            setPrevSeconds(seconds);
-            setPrevRemainSeconds(remainSeconds);
+        if (ms !== prevMs || remainMs !== prevRemainMs) {
+            setRemainMsState(remainMs);
+            setPrevMs(ms);
+            setPrevRemainMs(remainMs);
         }
-    
+
         return (
             <View
-                remainSeconds={remainSecondsState}
-                initialSeconds={seconds}
+                remainMs={remainMsState}
+                initialMs={ms}
                 threshold={threshold}
             />
         );

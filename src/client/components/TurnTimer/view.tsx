@@ -3,8 +3,8 @@ import clsx from 'clsx';
 import TimerIcon from './assets/timer.svg';
 
 export interface IProps {
-    remainSeconds: number;
-    initialSeconds: number;
+    remainMs: number;
+    initialMs: number;
     threshold?: number;
 }
 
@@ -21,24 +21,26 @@ function formatTime(seconds: number): string {
     return `${numPad(date.getMinutes())}:${numPad(date.getSeconds())}`;
 }
 
-function TimerView({ classes, remainSeconds, initialSeconds, threshold = 30 }: IEncapsulatedProps) {
+function TimerView({ classes, remainMs, initialMs, threshold = 30 }: IEncapsulatedProps) {
     return (
         <div className={classes.container}>
             <span className={clsx({
                 [classes.highlighted]: true,
-                [classes.threshold]: remainSeconds <= threshold,
+                [classes.threshold]: remainMs <= threshold,
             })}>
                 <img
                     src={TimerIcon}
                     alt="⏱️"
                     className={classes.icon}
                 />
-                { formatTime(remainSeconds) }
+                { formatTime(remainMs) }
             </span>
             &ensp;/&ensp;
-            { formatTime(initialSeconds) }
+            { formatTime(initialMs) }
         </div>
     );
 }
+
+TimerView.displayName = "TimerView";
 
 export default TimerView;

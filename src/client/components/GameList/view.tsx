@@ -1,7 +1,14 @@
 import * as React from 'react';
+import Timer from '../TurnTimer';
 
 export interface IProps {
+    timer: {
+        remainMs: number;
+        ms: number;
+    }
     onCreateGame: () => void;
+    onNextTurn: (gameId: string) => void;
+    onStartGame: (gameId: string) => void;
     gameList: string[];
 }
 
@@ -19,7 +26,14 @@ function View(props: IEncapsulatedProps) {
             </button>
             <br />
             {props.gameList.map(gameId => {
-                return <p key={gameId}>{gameId}</p>
+                return (
+                    <div key={gameId}>
+                        <Timer {...props.timer} />
+                        <span>{gameId} </span>
+                        <button onClick={() => props.onStartGame(gameId)}>Start </button>
+                        <button onClick={() => props.onNextTurn(gameId)}>Next turn</button>
+                    </div>
+                );
             })}
         </div>
     );

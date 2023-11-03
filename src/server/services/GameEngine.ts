@@ -1,12 +1,12 @@
 import type { Emit } from './GameManager';
 import uuid4 from "uuid4";
-
+import { ITimerInstance } from './Timer';
 import type { LetterId, Letters, ILettersService } from './Letters';
 import type { Field } from './helpers/generate_field_schema';
 import type { UserId, IPlayer, ISpectator, IUser } from './User';
 import { Player } from './User';
 import { generateFieldSchema } from './helpers/generate_field_schema';
-import { EVENTS, DEFAULT_TIMER_MS } from '../../constants';
+import { EVENTS, DEFAULT_TIMER_VALUE_SEC } from '../../constants';
 import { PLAYER_MAX_LETTERS_CAPACITY } from '../../constants';
 import { Timer } from './Timer';
 import { LettersService } from './Letters';
@@ -34,15 +34,13 @@ export interface Turn {
 };
 
 export interface IState {
-    game: {
-        active_player: UserId;
-        players: {
-            [playerId: string]: IPlayer
-        };
-        spectators: IUser[];
-        letters: Letters;
-        field: Field
-    },
+    active_player: UserId;
+    players: {
+        [playerId: string]: IPlayer
+    };
+    spectators: IUser[];
+    letters: Letters;
+    field: Field
     timer: {
         time: number;
         total: number;
@@ -51,6 +49,8 @@ export interface IState {
 
 export interface IGame {
     nextTurn: (turn: Turn, secret: string) => void;
+    start: () => void;
+    emit: Emit;
     canJoin: (max_players: number) => boolean;
     join: (player: ISpectator | IPlayer, pwd?: string) => void;
     getState: () => IState;
@@ -58,15 +58,15 @@ export interface IGame {
 
 export class GameEngine implements IGame {
     private state: IState;
+    private timer: ITimerInstance;
     private letters: ILettersService;
     private id: GameId;
     private max_score: number;
-    private emit: Emit;
 
-    public password?: string;
+    public emit: Emit;
 
     constructor(emit: Emit, id: GameId, settings: IGameSettings, playerName: IPlayer["name"]) {
-        const timer = new Timer(settings.timer || DEFAULT_TIMER_MS, this.onTimerTick, this.onTimerEnd);
+        const timer = new Timer(settings.timer || DEFAULT_TIMER_VALUE_SEC, this.onTimerTick, this.onTimerEnd);
         const letters = new LettersService(letterConfig);
 
         const player = new Player(letters, playerName);
@@ -74,39 +74,43 @@ export class GameEngine implements IGame {
         this.id = id;
 
         this.state = {
-            game: {
-                active_player: player.id,
-                players: {
-                    [player.id]: player
-                },
-                spectators: [],
-                letters: letters.getLetters(),
-                field: generateFieldSchema()
+            active_player: player.id,
+            players: {
+                [player.id]: player
             },
+            spectators: [],
+            letters: letters.getLetters(),
+            field: generateFieldSchema(),
             timer: {
-                time: timer.time,
-                total: timer.total
+                time: settings.timer,
+                total: settings.timer
+        
             }
         };
 
+        this.timer = timer;
         this.letters = letters;
         this.max_score = settings.max_score;
         this.emit = emit;
     }
 
+    public start() {
+        this.timer.start();
+    }
+
     public onTimerEnd() {
         this.nextTurn(
             {
-                playerId: this.state.game.active_player,
+                playerId: this.state.active_player,
                 words: []
             },
-            this.state.game.players[this.state.game.active_player].secret!
+            this.state.players[this.state.active_player].secret!
         )
     }
 
     private getNextPlayerId() {
-        const players = Object.keys(this.state.game.players);
-        const current_player_index = players.indexOf(this.state.game.active_player);
+        const players = Object.keys(this.state.players);
+        const current_player_index = players.indexOf(this.state.active_player);
 
         const next_player_index = (current_player_index + 1) % players.length;
 
@@ -115,7 +119,7 @@ export class GameEngine implements IGame {
     }
 
     public nextTurn(turn: Turn, secret: string) {
-        const player = this.state.game.players[turn.playerId];
+        const player = this.state.players[turn.playerId];
 
         if (secret !== player.secret) {
             console.error("Not a valid user for the current turn");
@@ -130,7 +134,7 @@ export class GameEngine implements IGame {
                 const { letters, position, type } = word;
 
                 letters.forEach((letterId, index) => {
-                    const letter = this.state.game.letters[letterId];
+                    const letter = this.state.letters[letterId];
 
                     letter.located = {
                         in: "field",
@@ -139,7 +143,7 @@ export class GameEngine implements IGame {
                             y: type === "vertical" ? position.y + index : position.y
                         }
                     };
-                    const field_bonus = this.state.game.field[letter.located.position.y][letter.located.position.x];
+                    const field_bonus = this.state.field[letter.located.position.y][letter.located.position.x];
 
                     if (field_bonus) {
                         switch (field_bonus) {
@@ -151,14 +155,14 @@ export class GameEngine implements IGame {
                     }
 
                     score += letter.price;
-                    this.state.game.letters[letterId] = letter;
+                    this.state.letters[letterId] = letter;
                 });
 
                 if (word_multiplier) {
                     score *= word_multiplier;
                 }
 
-                this.state.game.players[turn.playerId].score += score;
+                this.state.players[turn.playerId].score += score;
             });
         }
 
@@ -172,16 +176,16 @@ export class GameEngine implements IGame {
             player.letters = [...player.letters, ...letterIds];
         }
 
-        this.state.game.active_player = this.getNextPlayerId();
+        this.state.active_player = this.getNextPlayerId();
 
-        this.state.game.players[turn.playerId] = player;
+        this.state.players[turn.playerId] = player;
 
         if (player.score >= this.max_score) {
             this.finish(player);
         }
     }
 
-    public onTimerTick(time: number, total: number) {
+    public onTimerTick = (time: number, total: number) => {
         this.emit(this.id, EVENTS.ON_TIMER_TICK, { time, total });
     }
 
@@ -194,14 +198,14 @@ export class GameEngine implements IGame {
     }
 
     public canJoin(max_players: number) {
-        return !(max_players === Object.keys(this.state.game.players).length);
+        return !(max_players === Object.keys(this.state.players).length);
     }
 
-    public join(user: ISpectator | IPlayer, password?: string) {
+    public join(user: ISpectator | IPlayer) {
         if (user.role === "spectator") {
-            this.state.game.spectators.push(user);
+            this.state.spectators.push(user);
         } else {
-            this.state.game.players[user.id] = user;
+            this.state.players[user.id] = user;
         }
     }
 }

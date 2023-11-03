@@ -1,19 +1,44 @@
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-import type { Request, Response, NextFunction } from 'express';
+import type { Request, Response } from 'express';
+import * as React from 'react';
+import { renderToString } from 'react-dom/server';
+import App from '../../client/app';
 
-export default function middlewareServerSideRender(_req: Request, res: Response, next: NextFunction) {
-	fs.readFile(path.join(__dirname, '../../static/index.html'), 'utf-8', (err, page) => {
-		if (err) {
-			console.error(err);
-			res.status(404);
-			return next();
-		}
+const template = ({ title, app, scripts, styles }: any) => `
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>${title}</title>
+		${Array.isArray(styles)
+			? styles.map(style => `<link href="${style}" rel="stylesheet" />`).join('')
+			: ''}
+	</head>
+	<body>
+		<div id="app">${app}</div>
+		${Array.isArray(scripts)
+			? scripts.map(script => `<script src="${script}" defer></script>`).join('')
+			: ''}
+	</body>
+</html>`;
 
-		res.writeHead(404, {
-			'Content-Type': 'text/html',
-		});
-		res.write(page);
-		return res.end();
+export default function middlewareServerSideRender(_req: Request, res: Response) {
+	const appMarkup = renderToString(React.createElement(App));
+	const html = template({
+		title: res.locals.title,
+		app: appMarkup,
+		scripts: res.locals.assets.scripts,
+		styles: res.locals.assets.styles,
 	});
+
+	let minifyRegExp = /(\n\t\t)/g;
+	let minifyReplace = "\n";
+
+	if (process.env.NODE_ENV === 'production') {
+		minifyRegExp = /(\t|\n)/g;
+		minifyReplace = "";
+	}
+
+	res.send(html.replace(minifyRegExp, minifyReplace));
 }

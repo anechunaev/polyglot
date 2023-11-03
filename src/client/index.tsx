@@ -1,14 +1,8 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
-import './palette.css';
+import { hydrateRoot } from 'react-dom/client';
+import App from './app';
 
-window.addEventListener("DOMContentLoaded", () => {
-    // Clear the existing HTML content
-    document.body.innerHTML = '<div id="app"></div>';
-
-    // Render your React component instead
-    const root = createRoot(document.getElementById('app')!);
-    root.render(<h1>Hello, world</h1>);
-
-    console.log("----hello world-----");
+document.addEventListener("DOMContentLoaded", () => {
+    const container = document.getElementById("app");
+    hydrateRoot(container!, <App />);
 });

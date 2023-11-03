@@ -3,7 +3,6 @@ import Greetings from './components/Greetings';
 import Timer from './components/TurnTimer';
 import NoSSR from './components/NoSSR';
 import GameList from './components/GameList';
-import './styles/palette.css';
 
 function App() {
 	return (

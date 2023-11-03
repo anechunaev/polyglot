@@ -32,7 +32,6 @@ function View(props: IEncapsulatedProps) {
                         <Timer {...props.timer} />
                         <span>{gameId} </span>
                         <Button onClick={() => props.onStartGame(gameId)}>Start </Button>
-                        <Button onClick={() => props.onNextTurn(gameId)}>Next turn</Button>
                     </div>
                 );
             })}

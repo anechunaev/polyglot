@@ -8,7 +8,7 @@ export interface IProps {
 }
 
 function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProps> {
-	function TimerModel({ seconds, remainSeconds, threshold = 30 }: IProps) {
+	function TimerModel({ seconds = 0, remainSeconds = 0, threshold = 30 }: IProps) {
 		const [remainSecondsState, setRemainSecondsState] = React.useState(remainSeconds);
 		const [prevSeconds, setPrevSeconds] = React.useState<null | number>(null);
 		const [prevRemainSeconds, setPrevRemainSeconds] = React.useState<null | number>(null);

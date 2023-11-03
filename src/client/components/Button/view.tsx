@@ -6,7 +6,7 @@ function ButtonView({ classes, onClick, disabled, children }: IProps) {
 	return (
 		<button
 			type="button"
-			className={clsx(classes.container, 'default-focusable')}
+			className={clsx(classes.button, 'default-focusable')}
 			disabled={disabled}
 			onClick={onClick}
 		>

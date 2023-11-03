@@ -16,7 +16,7 @@ const config: StorybookConfig = {
 						isScss: true,
 						isServer: false,
 						prodEnv: false,
-						exclude: undefined,
+						exclude: /\?raw$/,
 					}),
 				],
 			},

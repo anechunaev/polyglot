@@ -13,7 +13,7 @@ function Button({ label, ...props }: { label: string }) {
 }
 
 const meta = {
-	title: 'Design System/Button',
+	title: 'Design System/Library/Button',
 	component: Button,
 	parameters: {
 		docs: {

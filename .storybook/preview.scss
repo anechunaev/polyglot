@@ -1,0 +1,7 @@
+@use '../src/client/theme';
+@use '../src/client/theme/palette.scss';
+
+.container {
+    @include theme.font($variant: 'regular');
+    color: var(--color-grey-600);
+}

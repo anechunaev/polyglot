@@ -1,7 +1,7 @@
 import * as React from 'react';
 
 export interface IProps extends React.PropsWithChildren {
-	fallback?: React.ComponentType<any> | null;
+	fallback?: React.ComponentType<any> | string | null;
 }
 
 function NoSSR({ children, fallback = null }: IProps) {
@@ -20,6 +20,7 @@ function NoSSR({ children, fallback = null }: IProps) {
 
 NoSSR.defaultProps = {
 	fallback: null,
+	children: 'Empty',
 };
 
 export default NoSSR;

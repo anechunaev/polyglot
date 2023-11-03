@@ -1,0 +1,6 @@
+@use '../src/client/theme';
+
+.container {
+    @include theme.font($variant: 'regular');
+    color: var(--color-grey-600);
+}

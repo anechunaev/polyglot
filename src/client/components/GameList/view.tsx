@@ -1,10 +1,11 @@
 import * as React from 'react';
+import Button from '../Button';
 import Timer from '../TurnTimer';
 
 export interface IProps {
     timer: {
-        remainMs: number;
-        ms: number;
+        remainSeconds: number;
+        seconds: number;
     }
     onCreateGame: () => void;
     onNextTurn: (gameId: string) => void;
@@ -13,25 +14,25 @@ export interface IProps {
 }
 
 export interface IEncapsulatedProps extends IProps {
-    classes: Record<string, string>;
+	classes: Record<string, string>;
 }
 
 function View(props: IEncapsulatedProps) {
     return (
         <div>
-            <button
+            <Button
                 onClick={props.onCreateGame}
             >
-                Create Game
-            </button>
+                Create a Game
+            </Button>
             <br />
             {props.gameList.map(gameId => {
                 return (
                     <div key={gameId}>
                         <Timer {...props.timer} />
                         <span>{gameId} </span>
-                        <button onClick={() => props.onStartGame(gameId)}>Start </button>
-                        <button onClick={() => props.onNextTurn(gameId)}>Next turn</button>
+                        <Button onClick={() => props.onStartGame(gameId)}>Start </Button>
+                        <Button onClick={() => props.onNextTurn(gameId)}>Next turn</Button>
                     </div>
                 );
             })}

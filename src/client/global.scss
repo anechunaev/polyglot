@@ -1,9 +1,10 @@
 @use './theme';
+@use './theme/palette.scss';
 
 @import url('/normalize.css');
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@900&family=Roboto+Mono:wght@400;600&display=swap');
 
 body {
     @include theme.font($variant: 'regular');
-    color: theme.$color-text-default;
+    color: var(--color-grey-600);
 }

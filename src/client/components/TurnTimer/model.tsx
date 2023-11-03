@@ -2,44 +2,44 @@ import * as React from 'react';
 import type { IProps as IViewProps } from './view';
 
 export interface IProps {
-	ms: number;
-    remainMs: number;
-    threshold?: number;
+	seconds: number;
+	remainSeconds: number;
+	threshold?: number;
 }
 
 function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProps> {
-	return function TimerModel({ ms = 0, remainMs = 0, threshold = 30 }: IProps) {
-        const [ remainMsState, setRemainMsState ] = React.useState(remainMs);
-        const [ prevMs, setPrevMs ] = React.useState<null | number>(null);
-        const [ prevRemainMs, setPrevRemainMs ] = React.useState<null | number>(null);
-    
-        React.useEffect(() => {
-            const intervalId = setInterval(() => {
-                if (remainMsState > 0) {
-                    setRemainMsState(remainMsState - 1);
-                } else {
-                    setRemainMsState(0);
-                    clearInterval(intervalId);
-                }
-            }, 1000);
-    
-            return () => clearInterval(intervalId);
-        }, [ remainMsState ]);
-    
-        if (ms !== prevMs || remainMs !== prevRemainMs) {
-            setRemainMsState(remainMs);
-            setPrevMs(ms);
-            setPrevRemainMs(remainMs);
-        }
+	function TimerModel({ seconds, remainSeconds, threshold = 30 }: IProps) {
+		const [remainSecondsState, setRemainSecondsState] = React.useState(remainSeconds);
+		const [prevSeconds, setPrevSeconds] = React.useState<null | number>(null);
+		const [prevRemainSeconds, setPrevRemainSeconds] = React.useState<null | number>(null);
 
-        return (
-            <View
-                remainMs={remainMsState}
-                initialMs={ms}
-                threshold={threshold}
-            />
-        );
-    };
+		React.useEffect(() => {
+			const intervalId = setInterval(() => {
+				if (remainSecondsState > 0) {
+					setRemainSecondsState(remainSecondsState - 1);
+				} else {
+					setRemainSecondsState(0);
+					clearInterval(intervalId);
+				}
+			}, 1000);
+
+			return () => clearInterval(intervalId);
+		}, [remainSecondsState]);
+
+		if (seconds !== prevSeconds || remainSeconds !== prevRemainSeconds) {
+			setRemainSecondsState(remainSeconds);
+			setPrevSeconds(seconds);
+			setPrevRemainSeconds(remainSeconds);
+		}
+
+		return <View remainSeconds={remainSecondsState} initialSeconds={seconds} threshold={threshold} />;
+	}
+
+	TimerModel.defaultProps = {
+		threshold: 30,
+	};
+
+	return TimerModel;
 }
 
 export default Model;

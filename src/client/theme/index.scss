@@ -1,4 +1,13 @@
 @import './mixins.scss';
-@import './colors.scss';
 
 $step: 4px;
+$borderRadius: 5px;
+
+:global {
+	.default-focusable {
+		&:focus {
+			box-shadow: 0 0 0 4px #0075D226;
+			outline: none;
+		}
+	}
+}

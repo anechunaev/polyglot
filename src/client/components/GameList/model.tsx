@@ -3,18 +3,19 @@ import type { IProps as IViewProps } from './view';
 import { EventBus } from '../../services/eventBus';
 import { EVENTS } from '../../../constants';
 
-export interface IProps {}
+export interface IProps { }
 
 function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProps> {
     return function GameListModel(_props: IProps) {
         const [gameList, updateGameList] = React.useState<string[]>(() => []);
-        const [timer, setTimer] = React.useState<{time?: number; total?: number;}>({});
+        const [timer, setTimer] = React.useState<{ time?: number; total?: number; }>({});
         const eventBus = new EventBus();
 
         eventBus.connect();
 
         eventBus.on(EVENTS.CREATE_GAME, (payload: any) => {
-            console.log("New game was created with state", payload);
+            // eslint-disable-next-line no-console
+            console.log('New game was created with state', payload);
         });
 
         eventBus.on(EVENTS.UPDATE_GAME_LIST, (payload: string[]) => {
@@ -23,12 +24,11 @@ function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProp
 
         eventBus.on(EVENTS.ON_TIMER_TICK, (payload: any) => {
             setTimer(() => payload);
-            console.log('---ON_TIMER_TICK-----', payload);
         });
 
         const onStartGame = React.useCallback((gameId: string) => {
             eventBus.emit(EVENTS.GAME_START, { gameId });
-        }, []);
+        }, [eventBus]);
 
         const onCreateGame = React.useCallback(() => {
             eventBus.emit(EVENTS.CREATE_GAME, {
@@ -41,14 +41,17 @@ function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProp
                     }
                 }
             });
-        }, []);
+        }, [eventBus]);
+
+        const onNextTurn = React.useCallback(() => { }, []);
 
         return (
             <View
                 onStartGame={onStartGame}
+                onNextTurn={onNextTurn}
                 onCreateGame={onCreateGame}
                 gameList={gameList}
-                timer={{remainMs: timer.time!, ms: timer.total!}}
+                timer={{ remainSeconds: timer.time!, seconds: timer.total! }}
             />
         );
     };

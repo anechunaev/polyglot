@@ -1,0 +1,28 @@
+@use '../../theme' as *;
+
+.container {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	min-height: 40px;
+	padding: 12px 30px;
+	background-color: var(--color-white);
+	border: 1px solid var(--color-grey-400);
+	border-radius: $borderRadius;
+	color: var(--color-grey-700);
+	@include font($variant: 'regular');
+	white-space: nowrap;
+	cursor: pointer;
+
+	&:hover:not([disabled]) {
+		border-color: var(--color-blue-500);
+		color: var(--color-blue-600);
+	}
+
+	&[disabled] {
+		border-color: var(--color-grey-200);
+		color: var(--color-grey-500);
+		cursor: default;
+	}
+}

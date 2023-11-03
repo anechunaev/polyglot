@@ -16,9 +16,9 @@
 
 .highlighted {
     @include font($variant: 'timers', $font-weight: 600);
-    color: $color-text-dark;
+    color: var(--color-black);
 }
 
 .threshold {
-    color: $color-text-danger;
+    color: var(--color-red-600);
 }

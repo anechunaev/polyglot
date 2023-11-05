@@ -4,12 +4,13 @@ export interface IProps {
 	children: string;
 	onClick: () => void;
 	disabled?: boolean;
+	className?: string;
 }
 
 function Model(View: React.ComponentType<IProps>): React.ComponentType<IProps> {
-	function ButtonModel({ children, onClick, disabled }: IProps) {
+	function ButtonModel({ children, onClick, disabled, className }: IProps) {
 		return (
-			<View onClick={onClick} disabled={disabled}>
+			<View onClick={onClick} disabled={disabled} className={className}>
 				{children}
 			</View>
 		);
@@ -17,6 +18,7 @@ function Model(View: React.ComponentType<IProps>): React.ComponentType<IProps> {
 
 	ButtonModel.defaultProps = {
 		disabled: false,
+		className: '',
 	};
 
 	return ButtonModel;

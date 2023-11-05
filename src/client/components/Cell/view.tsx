@@ -14,8 +14,8 @@ export interface IEncapsulatedProps extends IProps {
 }
 
 export const bonuses: Record<string, string[]> = {
-	l2: ['LETTER', '×2'],
-	l3: ['LETTER', '×3'],
+	l2: ['letter', '×2'],
+	l3: ['letter', '×3'],
 	w2: ['word', '×2'],
 	w3: ['word', '×3'],
 };

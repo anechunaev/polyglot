@@ -29,14 +29,22 @@ function SidebarView({ classes, letters, selectedCells, onClick }: IEncapsulated
 
 					return (
 						<Cell
-							key={h32(letter.value + index, 0xabcd).toString()}
+							key={h32(letter.value + index + 'cell', 0xabcd).toString()}
 							bonus={null}
-							onClick={() => onClick(index)}
 							className={clsx({
 								[classes.selected]: selectedCells.includes(index),
 							})}
 						>
-							<Letter className={classes.letter} letter={{ price: letter.price, value: letter.value }} />
+							<Cell
+								key={h32(letter.value + index, 0xabcd).toString()}
+								bonus={null}
+								onClick={() => onClick(index)}
+								className={clsx({
+									[classes.selected]: selectedCells.includes(index),
+								})}
+							>
+								<Letter className={classes.letter} letter={{ price: letter.price, value: letter.value }} />
+							</Cell>
 						</Cell>
 					);
 				})}

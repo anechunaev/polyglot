@@ -30,6 +30,7 @@
     "node": ">=18.17"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.0.8",
     "clsx": "^2.0.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",

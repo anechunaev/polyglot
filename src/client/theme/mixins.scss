@@ -13,6 +13,12 @@
         font: 400 10px/12px Arial, Helvetica, sans-serif;
     } @else if $variant == 'scores' {
         font: 400 8px/12px Arial, Helvetica, sans-serif;
+    } @else if $variant == 'prices' {
+        font: 400 8px/6px Arial, Helvetica, sans-serif;
+    } @else if $variant == 'bonus-price' {
+        font: 900 20px/15px Inter, sans-serif;
+    } @else if $variant == 'bonus' {
+        font: 400 6px/5px Inter, sans-serif;
     }
 
     @if $variant == 'letters' or $variant == 'words' {

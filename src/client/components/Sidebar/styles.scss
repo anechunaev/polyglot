@@ -1,0 +1,28 @@
+.selected {
+    background-color: var(--color-blue-500);
+}
+
+.sidebar {
+    width: 302px;
+}
+
+.field {
+    margin-top: 40px;
+    width: 304px;
+}
+
+.button {
+    width: 146px;
+}
+
+.buttons {
+    display: flex;
+    margin-top: 10px;
+    justify-content: space-between;
+}
+
+.letter {
+    &:hover {
+        cursor: pointer;
+    }
+}

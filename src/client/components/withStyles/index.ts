@@ -18,7 +18,7 @@ function withStyles<P = {}, R = unknown>(
 	styles: Record<string, string>,
 ): IOuterComponent<P, R> {
 	const styled = React.forwardRef<R, P & Partial<IWithStylesProps>>(
-		(props: P & Partial<IWithStylesProps>, ref: any) =>
+		(props: P & Partial<IWithStylesProps>, ref: React.ForwardedRef<R>) =>
 			React.createElement(Component, {
 				...props,
 				ref,

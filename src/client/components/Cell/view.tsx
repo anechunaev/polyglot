@@ -4,6 +4,7 @@ import { h32 } from 'xxhashjs';
 
 export interface IProps {
 	bonus: 'l2' | 'l3' | 'w2' | 'w3' | null;
+	style?: Record<string, string>;
 	className?: string;
 	onClick?: () => void;
 	children?: React.ReactNode;
@@ -20,7 +21,7 @@ export const bonuses: Record<string, string[]> = {
 	w3: ['word', '×3'],
 };
 
-function CellView({ classes, bonus, children, onClick, className = '' }: IEncapsulatedProps) {
+function CellView({ classes, bonus, children, onClick, className = '', style }: IEncapsulatedProps) {
 	const renderBonus = () => {
 		const content = bonuses[bonus!];
 		return (
@@ -44,6 +45,7 @@ function CellView({ classes, bonus, children, onClick, className = '' }: IEncaps
 	};
 	return (
 		<div
+			style={style}
 			onClick={onClick}
 			className={clsx(classes.cell, className, {
 				[classes[bonus || ''] || '']: true,
@@ -57,6 +59,7 @@ function CellView({ classes, bonus, children, onClick, className = '' }: IEncaps
 CellView.displayName = 'CellView';
 
 CellView.defaultProps = {
+	style: {},
 	onClick: () => {},
 	className: '',
 	children: null,

@@ -5,15 +5,26 @@ export interface IWithStylesProps {
 	classes: Record<string, string>;
 }
 
-function withStyles<P = {}>(
-	Component: React.ComponentType<P & IWithStylesProps>,
+export type IInnerComponent<P, R> =
+	| React.ForwardRefExoticComponent<P & IWithStylesProps & React.RefAttributes<R>>
+	| React.ComponentType<P & IWithStylesProps>;
+
+type IComponentProps<P, R> = React.PropsWithoutRef<P & Partial<IWithStylesProps>> & React.RefAttributes<R>;
+
+export type IOuterComponent<P, R> = React.ForwardRefExoticComponent<IComponentProps<P, R>>;
+
+function withStyles<P = {}, R = unknown>(
+	Component: IInnerComponent<P, R>,
 	styles: Record<string, string>,
-): React.ComponentType<P & Partial<IWithStylesProps>> {
-	const styled = (props: P & Partial<IWithStylesProps>) =>
-		React.createElement(Component, {
-			...props,
-			classes: deepMerge(styles, props.classes ?? {}),
-		});
+): IOuterComponent<P, R> {
+	const styled = React.forwardRef<R, P & Partial<IWithStylesProps>>(
+		(props: P & Partial<IWithStylesProps>, ref: any) =>
+			React.createElement(Component, {
+				...props,
+				ref,
+				classes: deepMerge(styles, props.classes ?? {}),
+			}),
+	);
 
 	styled.displayName = `WithStyles(${Component.displayName || Component.name})`;
 

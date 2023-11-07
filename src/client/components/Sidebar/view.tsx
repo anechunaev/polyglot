@@ -3,9 +3,9 @@ import clsx from 'clsx';
 import { h32 } from 'xxhashjs';
 import Field from '../Field';
 import Cell from '../Cell';
-import Letter from '../Letter';
 import Timer from '../TurnTimer';
 import Button from '../Button';
+import DraggableLetter from '../DraggableLetter';
 
 import data from './data.json';
 
@@ -29,7 +29,7 @@ function SidebarView({ classes, letters, selectedCells, onClick }: IEncapsulated
 
 					return (
 						<Cell
-							key={h32(letter.value + index + 'cell', 0xabcd).toString()}
+							key={h32(`${letter.value + index}cell`, 0xabcd).toString()}
 							bonus={null}
 							className={clsx({
 								[classes.selected]: selectedCells.includes(index),
@@ -43,7 +43,10 @@ function SidebarView({ classes, letters, selectedCells, onClick }: IEncapsulated
 									[classes.selected]: selectedCells.includes(index),
 								})}
 							>
-								<Letter className={classes.letter} letter={{ price: letter.price, value: letter.value }} />
+								<DraggableLetter
+									className={classes.letter}
+									letter={{ price: letter.price, value: letter.value }}
+								/>
 							</Cell>
 						</Cell>
 					);

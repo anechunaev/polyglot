@@ -6,11 +6,10 @@ import Cell from '../Cell';
 import Timer from '../TurnTimer';
 import Button from '../Button';
 import DraggableLetter from '../DraggableLetter';
-
 import data from './data.json';
 
 export interface IProps {
-	letters: string[];
+	letterIds: string[];
 	onClick: (id: number) => void;
 	selectedCells: number[];
 }
@@ -19,35 +18,29 @@ export interface IEncapsulatedProps extends IProps {
 	classes: Record<string, string>;
 }
 
-function SidebarView({ classes, letters, selectedCells, onClick }: IEncapsulatedProps) {
+function SidebarView({ classes, letterIds, selectedCells, onClick }: IEncapsulatedProps) {
 	return (
 		<div className={classes.sidebar}>
 			<Timer seconds={120} remainSeconds={0} />
 			<Field className={classes.field}>
-				{letters.map((letterId: string, index) => {
+				{letterIds.map((letterId: string, index) => {
 					const letter = (data as any).letters[letterId];
 
 					return (
 						<Cell
-							key={h32(`${letter.value + index}cell`, 0xabcd).toString()}
+							id={letterId + 'cell'}
+							key={h32(letter.value + index, 0xabcd).toString()}
 							bonus={null}
+							onClick={() => onClick(index)}
 							className={clsx({
 								[classes.selected]: selectedCells.includes(index),
 							})}
 						>
-							<Cell
-								key={h32(letter.value + index, 0xabcd).toString()}
-								bonus={null}
-								onClick={() => onClick(index)}
-								className={clsx({
-									[classes.selected]: selectedCells.includes(index),
-								})}
-							>
-								<DraggableLetter
-									className={classes.letter}
-									letter={{ price: letter.price, value: letter.value }}
-								/>
-							</Cell>
+							<DraggableLetter
+								letterId={letterId}
+								className={classes.letter}
+								// letter={{ price: letter.price, value: letter.value }}
+							/>
 						</Cell>
 					);
 				})}

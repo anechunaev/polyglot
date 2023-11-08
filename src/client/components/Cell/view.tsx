@@ -3,11 +3,12 @@ import clsx from 'clsx';
 import { h32 } from 'xxhashjs';
 
 export interface IProps {
+	id: string;
 	bonus: 'l2' | 'l3' | 'w2' | 'w3' | null;
 	style?: Record<string, string>;
 	className?: string;
 	onClick?: () => void;
-	children?: React.ReactNode;
+	children?: React.ReactNode | null;
 }
 
 export interface IEncapsulatedProps extends IProps {
@@ -21,11 +22,11 @@ export const bonuses: Record<string, string[]> = {
 	w3: ['word', '×3'],
 };
 
-function CellView({ classes, bonus, children, onClick, className = '', style }: IEncapsulatedProps) {
+function CellView({ classes, bonus, children, onClick, className = '', style }: React.PropsWithoutRef<IEncapsulatedProps>, ref: any) {
 	const renderBonus = () => {
 		const content = bonuses[bonus!];
 		return (
-			<div className={classes.bonusContainer}>
+			<div className={classes.bonusContainer} >
 				{content.map((item, i) => (
 					<span key={h32(item + i, 0xabcd).toString()}>{item}</span>
 				))}
@@ -45,6 +46,7 @@ function CellView({ classes, bonus, children, onClick, className = '', style }: 
 	};
 	return (
 		<div
+			ref={ref}
 			style={style}
 			onClick={onClick}
 			className={clsx(classes.cell, className, {
@@ -58,10 +60,4 @@ function CellView({ classes, bonus, children, onClick, className = '', style }: 
 
 CellView.displayName = 'CellView';
 
-CellView.defaultProps = {
-	style: {},
-	onClick: () => {},
-	className: '',
-	children: null,
-};
 export default CellView;

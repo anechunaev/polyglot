@@ -1,18 +1,16 @@
 import * as React from 'react';
+import Model from './model';
 import View, { IEncapsulatedProps, IWithClassesProps } from './view';
 import withStyles from '../withStyles';
 import styles from './styles.scss';
 
-const Letter = withStyles<IEncapsulatedProps, HTMLDivElement>(
+const Letter = Model(withStyles<IEncapsulatedProps, HTMLDivElement>(
 	React.forwardRef<HTMLDivElement, IEncapsulatedProps & IWithClassesProps>(View),
 	styles,
-);
+));
 
 Letter.defaultProps = {
-	className: '',
-	onMouseUp: () => {},
-	onMouseMove: () => {},
-	onMouseDown: () => {},
+	className: ''
 };
 
 Letter.displayName = 'Letter';

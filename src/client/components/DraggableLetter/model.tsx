@@ -1,48 +1,31 @@
 import * as React from 'react';
+import { useDraggable, DraggableAttributes } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
+import { IProps as ILetterProps } from '../Letter/model';
 
-import { IProps as ILetterProps } from '../Letter/view';
+export type SyntheticListenerMap = Record<string, Function>;
 
 export interface IProps {
-	onMouseUp: (event: any) => void;
-	onMouseDown: (event: any) => void;
-	onMouseMove: (event: any) => void;
+    style?: Record<string, string | undefined>;
+    attributes: DraggableAttributes;
+    listeners: SyntheticListenerMap | undefined;
 }
 
 function Model(
-	View: React.ForwardRefExoticComponent<React.PropsWithoutRef<ILetterProps & IProps> & React.RefAttributes<unknown>>,
+    View: React.ForwardRefExoticComponent<React.PropsWithoutRef<ILetterProps & IProps> & React.RefAttributes<unknown>>,
 ): React.ComponentType<ILetterProps> {
-	function DraggabaleLetterModel(props: ILetterProps) {
-		// const [transform, setTransform] = React.useState<{ x: number; y: number }>();
-		const [isMoving, setIsMoving] = React.useState(false);
-		const ref = React.createRef<HTMLDivElement>();
+    function DraggabaleLetterModel(props: ILetterProps) {
+        const {attributes, listeners, setNodeRef, transform} = useDraggable({
+            id: props.letterId || '',
+          });
+        const style = {
+            transform: CSS.Translate.toString(transform),
+        };
 
-		const onMouseDown = (event: any) => {
-			console.log(event);
-			setIsMoving(true);
+        return <View ref={setNodeRef} style={style} attributes={attributes} listeners={listeners} {...props} />;
+    }
 
-			if (ref && ref.current) {
-				const rect = ref.current.getBoundingClientRect();
-				console.log(rect);
-			}
-		};
-
-		const onMouseUp = (event: any) => {
-			console.log(event);
-			setIsMoving(false);
-		};
-		const onMouseMove = React.useCallback(
-			(event: any) => {
-				if (isMoving) {
-					console.log(event);
-				}
-			},
-			[isMoving],
-		);
-
-		return <View {...props} ref={ref} onMouseUp={onMouseUp} onMouseMove={onMouseMove} onMouseDown={onMouseDown} />;
-	}
-
-	return DraggabaleLetterModel;
+    return DraggabaleLetterModel;
 }
 
 export default Model;

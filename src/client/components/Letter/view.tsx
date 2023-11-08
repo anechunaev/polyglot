@@ -1,8 +1,11 @@
 import * as React from 'react';
 import clsx from 'clsx';
+import type { DraggableAttributes } from '@dnd-kit/core';
+
+export type SyntheticListenerMap = Record<string, Function>;
 
 export interface IProps {
-	ref?: any;
+	// id: string;
 	className?: string;
 	letter: {
 		value: string;
@@ -11,9 +14,9 @@ export interface IProps {
 }
 
 export interface IEncapsulatedProps extends IProps {
-	onMouseUp?: (event: any) => void;
-	onMouseDown?: (event: any) => void;
-	onMouseMove?: (event: any) => void;
+    style?: Record<string, string | undefined>;
+    attributes?: DraggableAttributes;
+    listeners?: SyntheticListenerMap | undefined;
 }
 
 export interface IWithClassesProps {
@@ -21,11 +24,11 @@ export interface IWithClassesProps {
 }
 
 function LetterView(
-	{ classes, letter, className, ...rest }: React.PropsWithoutRef<IEncapsulatedProps & IWithClassesProps>,
+	{ classes, letter, className, attributes, listeners, ...rest }: React.PropsWithoutRef<IEncapsulatedProps & IWithClassesProps>,
 	ref: any,
 ) {
 	return (
-		<div className={clsx(classes.letter, className)} {...rest} ref={ref}>
+		<div ref={ref} className={clsx(classes.letter, className)} {...attributes} {...listeners} {...rest}>
 			<div className={classes.priceOverlay}>
 				<span className={classes.price}>{letter.price}</span>
 			</div>

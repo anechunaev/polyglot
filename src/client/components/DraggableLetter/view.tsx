@@ -1,18 +1,21 @@
 import * as React from 'react';
 import Letter from '../Letter';
-import { IProps as ILetterViewProps } from '../Letter/view';
+import type { DraggableAttributes } from '@dnd-kit/core';
+import type { IProps as ILetterModelProps } from '../Letter/model';
+
+export type SyntheticListenerMap = Record<string, Function>;
 
 export interface IProps {
-	onMouseUp: (event: any) => void;
-	onMouseDown: (event: any) => void;
-	onMouseMove: (event: any) => void;
+    style?: Record<string, string | undefined>;
+    attributes: DraggableAttributes;
+    listeners: SyntheticListenerMap | undefined;
 }
 
 function DraggableLetter(
-	{ onMouseDown, onMouseMove, onMouseUp, ...rest }: React.PropsWithoutRef<IProps & ILetterViewProps>,
+	props: React.PropsWithoutRef<IProps & ILetterModelProps>,
 	ref: any,
 ) {
-	return <Letter ref={ref} onMouseDown={onMouseDown} onMouseMove={onMouseMove} onMouseUp={onMouseUp} {...rest} />;
+	return <Letter ref={ref} {...props} />;
 }
 
 DraggableLetter.displayName = 'DraggableLetterView';

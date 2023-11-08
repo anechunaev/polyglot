@@ -1,16 +1,12 @@
 import * as React from 'react';
-import data from './data.json';
-
-const { letters } = (data as any).players[data.active_player];
+import {IProps as IViewProps} from './view';
 
 export interface IProps {
-	letters: string[];
-	onClick: (id: number) => void;
-	selectedCells: number[];
+	letterIds: string[];
 }
 
-function Model(View: React.ComponentType<IProps>): React.ComponentType {
-	function SidebarModel() {
+function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProps> {
+	function SidebarModel({letterIds}: IProps) {
 		const [selectedCells, setSelectedCells] = React.useState<number[]>([]);
 
 		const toogleSelected = (id: number) => {
@@ -27,7 +23,7 @@ function Model(View: React.ComponentType<IProps>): React.ComponentType {
 			});
 		};
 
-		return <View letters={letters} onClick={toogleSelected} selectedCells={selectedCells} />;
+		return <View letterIds={letterIds} onClick={toogleSelected} selectedCells={selectedCells} />;
 	}
 
 	return SidebarModel;

@@ -1,14 +1,16 @@
 import * as React from 'react';
-import {IProps as IViewProps, IWithClassesProps} from './view';
 import type { DraggableAttributes } from '@dnd-kit/core';
-
-export type SyntheticListenerMap = Record<string, Function>;
+import { IProps as IViewProps } from './view';
 
 import data from './data.json';
 
+export type SyntheticListenerMap = Record<string, Function>;
+
 export interface IProps {
     letterId: string;
-    className?: string;
+    isSelected?: boolean;
+    onClick?: () => void;
+    classes?: Record<string, string>;
 }
 
 export interface IEncapsulatedProps {

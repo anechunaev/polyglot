@@ -5,8 +5,8 @@ import type { DraggableAttributes } from '@dnd-kit/core';
 export type SyntheticListenerMap = Record<string, Function>;
 
 export interface IProps {
-	// id: string;
-	className?: string;
+	onClick?: () => void;
+	isSelected?: boolean;
 	letter: {
 		value: string;
 		price: number;
@@ -24,11 +24,13 @@ export interface IWithClassesProps {
 }
 
 function LetterView(
-	{ classes, letter, className, attributes, listeners, ...rest }: React.PropsWithoutRef<IEncapsulatedProps & IWithClassesProps>,
+	{ classes, isSelected, onClick, letter, attributes, listeners, ...rest }: React.PropsWithoutRef<IEncapsulatedProps & IWithClassesProps>,
 	ref: any,
 ) {
 	return (
-		<div ref={ref} className={clsx(classes.letter, className)} {...attributes} {...listeners} {...rest}>
+		<div ref={ref} onClick={onClick} className={clsx(classes.letter, {
+			[classes.selected]: isSelected
+		})} {...attributes} {...listeners} {...rest}>
 			<div className={classes.priceOverlay}>
 				<span className={classes.price}>{letter.price}</span>
 			</div>

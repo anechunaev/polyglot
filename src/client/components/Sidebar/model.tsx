@@ -2,15 +2,16 @@ import * as React from 'react';
 import {IProps as IViewProps} from './view';
 
 export interface IProps {
-	letterIds: string[];
+	letterIds: (string | null)[];
 }
 
 function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProps> {
 	function SidebarModel({letterIds}: IProps) {
-		const [selectedCells, setSelectedCells] = React.useState<number[]>([]);
+		const [selectedLetters, setSelectedLetters] = React.useState<number[]>([]);
 
 		const toogleSelected = (id: number) => {
-			setSelectedCells((state) => {
+			console.log('----toogleSelected-----', id);
+			setSelectedLetters((state) => {
 				const indexOf = state.indexOf(id);
 
 				if (indexOf !== -1) {
@@ -23,8 +24,10 @@ function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProp
 			});
 		};
 
-		return <View letterIds={letterIds} onClick={toogleSelected} selectedCells={selectedCells} />;
+		return <View letterIds={letterIds} onClick={toogleSelected} selectedLetters={selectedLetters} />;
 	}
+
+	SidebarModel.displayName = 'SidebarModel';
 
 	return SidebarModel;
 }

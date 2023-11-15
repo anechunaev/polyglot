@@ -9,8 +9,6 @@ const Cell = withStyles<IViewProps, HTMLDivElement>(
 Cell.displayName = 'Cell';
 Cell.defaultProps = {
 	style: {},
-	onClick: () => {},
-	className: '',
 	children: null,
 };
 

@@ -7,12 +7,13 @@ import styles from './styles.scss';
 const Letter = Model(withStyles<IEncapsulatedProps, HTMLDivElement>(
 	React.forwardRef<HTMLDivElement, IEncapsulatedProps & IWithClassesProps>(View),
 	styles,
+	{ withMergeClasses: true }
 ));
 
 Letter.defaultProps = {
-	className: ''
-};
-
+	isSelected: false,
+	onClick: () => {}
+}
 Letter.displayName = 'Letter';
 
 export default Letter;

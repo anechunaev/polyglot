@@ -8,9 +8,9 @@ import Cell from '../Cell';
 
 function Component() {
 	return letters.map((letter, i) => (
-		<Cell key={h32(`${letter.name + i}row`, 0xabcd).toString()} bonus={null}>
+		<Cell key={h32(`${letter.name + "r"}`, 0xabcd).toString()} bonus={null}>
 			<Letter
-				key={h32(letter.name + i, 0xabcd).toString()}
+				key={h32(letter.name + "l", 0xabcd).toString()}
 				letter={{ price: letter.price, value: letter.name }}
 			/>
 		</Cell>

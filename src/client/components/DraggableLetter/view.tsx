@@ -1,11 +1,12 @@
 import * as React from 'react';
-import Letter from '../Letter';
 import type { DraggableAttributes } from '@dnd-kit/core';
+import Letter from '../Letter';
 import type { IProps as ILetterModelProps } from '../Letter/model';
 
 export type SyntheticListenerMap = Record<string, Function>;
 
 export interface IProps {
+    classes?: Record<string, string>;
     style?: Record<string, string | undefined>;
     attributes: DraggableAttributes;
     listeners: SyntheticListenerMap | undefined;

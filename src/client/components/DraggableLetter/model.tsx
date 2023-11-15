@@ -1,23 +1,18 @@
 import * as React from 'react';
-import { useDraggable, DraggableAttributes } from '@dnd-kit/core';
+import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { IProps as ILetterProps } from '../Letter/model';
+import type { IProps as IViewProps } from './view';
 
 export type SyntheticListenerMap = Record<string, Function>;
 
-export interface IProps {
-    style?: Record<string, string | undefined>;
-    attributes: DraggableAttributes;
-    listeners: SyntheticListenerMap | undefined;
-}
-
 function Model(
-    View: React.ForwardRefExoticComponent<React.PropsWithoutRef<ILetterProps & IProps> & React.RefAttributes<unknown>>,
-): React.ComponentType<ILetterProps> {
+    View: React.ComponentType<React.PropsWithoutRef<IViewProps & ILetterProps> & React.RefAttributes<unknown>>    // View: React.ForwardRefExoticComponent<React.PropsWithoutRef<ILetterProps & IViewProps> & React.RefAttributes<unknown>>,
+): React.ForwardRefRenderFunction<unknown, ILetterProps> {
     function DraggabaleLetterModel(props: ILetterProps) {
-        const {attributes, listeners, setNodeRef, transform} = useDraggable({
+        const { attributes, listeners, setNodeRef, transform } = useDraggable({
             id: props.letterId || '',
-          });
+        });
         const style = {
             transform: CSS.Translate.toString(transform),
         };

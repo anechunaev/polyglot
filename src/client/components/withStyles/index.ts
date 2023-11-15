@@ -1,8 +1,12 @@
 import * as React from 'react';
-import { deepMerge } from '../../../lib/object';
+import { deepMerge, mergeObjectStyles } from '../../../lib';
 
 export interface IWithStylesProps {
 	classes: Record<string, string>;
+}
+
+export interface IWithStylesOptions {
+	withMergeClasses: boolean;
 }
 
 export type IInnerComponent<P, R> =
@@ -16,14 +20,17 @@ export type IOuterComponent<P, R> = React.ForwardRefExoticComponent<IComponentPr
 function withStyles<P = {}, R = unknown>(
 	Component: IInnerComponent<P, R>,
 	styles: Record<string, string>,
+	opts: IWithStylesOptions = { withMergeClasses: false }
 ): IOuterComponent<P, R> {
 	const styled = React.forwardRef<R, P & Partial<IWithStylesProps>>(
-		(props: P & Partial<IWithStylesProps>, ref: React.ForwardedRef<R>) =>
-			React.createElement(Component, {
+		(props: P & Partial<IWithStylesProps>, ref: React.ForwardedRef<R>) => {
+			const mergeFn = opts.withMergeClasses ? mergeObjectStyles : deepMerge;
+			return React.createElement(Component, {
 				...props,
 				ref,
-				classes: deepMerge(styles, props.classes ?? {}),
-			}),
+				classes: mergeFn(styles, props.classes ?? {}),
+			})
+		},
 	);
 
 	styled.displayName = `WithStyles(${Component.displayName || Component.name})`;

@@ -1,6 +1,8 @@
 @use '../../theme' as *;
 
 .letter {
+    border: 3px solid transparent;
+    border-radius: 5px;
     text-align: center;
     display: flex;
     flex: 0 1 auto;
@@ -10,7 +12,10 @@
     height: 34px;
     background-color: var(--color-white);
     color: var(--color-black);
-    border-radius: 3px;
+}
+
+.selected {
+    border-color: var(--color-blue-500);
 }
 
 .price {

@@ -8,6 +8,7 @@ export type SyntheticListenerMap = Record<string, Function>;
 
 export interface IProps {
     letterId: string;
+    className?: string;
     isSelected?: boolean;
     onClick?: () => void;
     classes?: Record<string, string>;

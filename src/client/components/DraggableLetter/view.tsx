@@ -5,18 +5,34 @@ import type { IProps as ILetterModelProps } from '../Letter/model';
 
 export type SyntheticListenerMap = Record<string, Function>;
 
+export interface IEncapsulatedProps {
+    classes: Record<string, string>
+}
+
 export interface IProps {
-    classes?: Record<string, string>;
+    isDragging?: boolean;
     style?: Record<string, string | undefined>;
     attributes: DraggableAttributes;
     listeners: SyntheticListenerMap | undefined;
 }
 
 function DraggableLetter(
-	props: React.PropsWithoutRef<IProps & ILetterModelProps>,
+	props: React.PropsWithoutRef<IProps & ILetterModelProps & IEncapsulatedProps>,
 	ref: any,
 ) {
-	return <Letter ref={ref} {...props} />;
+	return (
+        <Letter
+            ref={ref}
+            letterId={props.letterId}
+            onClick={props.onClick}
+            className={  props.isDragging ? props.classes.elevated : ''}
+            classes={props.classes}
+            attributes={props.attributes}
+            listeners={props.listeners}
+            isSelected={props.isSelected}
+            style={props.style}
+        />
+    );
 }
 
 DraggableLetter.displayName = 'DraggableLetterView';

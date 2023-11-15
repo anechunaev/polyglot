@@ -14,9 +14,9 @@ function Model(
             id: props.id || '',
         });
 
-        if (isOver) {
-          console.log('isOver', isOver, node);
-        }
+        // if (isOver) {
+        // //   console.log('isOver', isOver, node);
+        // }
 
         const newProps = {...props};
         delete newProps.id;

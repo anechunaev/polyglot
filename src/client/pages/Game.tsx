@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { h32 } from 'xxhashjs';
-import { DndContext, MouseSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, MouseSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import type { IProps as ICellProps } from '../components/Cell/view';
 import Sidebar from '../components/Sidebar';
 import Field from '../components/Field';
@@ -23,14 +23,18 @@ function GamePage({ }: IProps) {
             distance: 10
         }
     });
-    const handleDragEnd = ({ over, active }: any) => {
+    const handleDragStart = ({active}: DragStartEvent) => {
+        // console.log('-----data----', active);
+    }
+
+    const handleDragEnd = ({ over, active }: DragEndEvent) => {
         if (over) {
             setDroppedLetters(state => ({
                 ...state,
                 [over.id]: active.id
             }));
             updateLetterIds(state => {
-                const letterIndex = state.indexOf(active.id);
+                const letterIndex = state.indexOf(active.id as string);
 
                 if (letterIndex !== -1) {
                     const newState = [...state];
@@ -47,7 +51,7 @@ function GamePage({ }: IProps) {
 
     return (
         <div className={styles.game}>
-            <DndContext onDragEnd={handleDragEnd} sensors={useSensors(mouseSensor)}>
+            <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={useSensors(mouseSensor)}>
                 <Field>
                     {(schema as ICellProps['bonus'][][]).map((row, index) => (
                         <div

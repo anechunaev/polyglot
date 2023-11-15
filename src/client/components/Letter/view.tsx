@@ -7,6 +7,7 @@ export type SyntheticListenerMap = Record<string, Function>;
 export interface IProps {
 	onClick?: () => void;
 	isSelected?: boolean;
+	className?: string;
 	letter: {
 		value: string;
 		price: number;
@@ -24,11 +25,11 @@ export interface IWithClassesProps {
 }
 
 function LetterView(
-	{ classes, isSelected, onClick, letter, attributes, listeners, ...rest }: React.PropsWithoutRef<IEncapsulatedProps & IWithClassesProps>,
+	{ classes, isSelected, className, onClick, letter, attributes, listeners, ...rest }: React.PropsWithoutRef<IEncapsulatedProps & IWithClassesProps>,
 	ref: any,
 ) {
 	return (
-		<div ref={ref} onClick={onClick} className={clsx(classes.letter, {
+		<div ref={ref} onClick={onClick} className={clsx(classes.letter, className, {
 			[classes.selected]: isSelected
 		})} {...attributes} {...listeners} {...rest}>
 			<div className={classes.priceOverlay}>

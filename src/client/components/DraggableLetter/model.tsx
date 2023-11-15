@@ -10,14 +10,15 @@ function Model(
     View: React.ComponentType<React.PropsWithoutRef<IViewProps & ILetterProps> & React.RefAttributes<unknown>>    // View: React.ForwardRefExoticComponent<React.PropsWithoutRef<ILetterProps & IViewProps> & React.RefAttributes<unknown>>,
 ): React.ForwardRefRenderFunction<unknown, ILetterProps> {
     function DraggabaleLetterModel(props: ILetterProps) {
-        const { attributes, listeners, setNodeRef, transform } = useDraggable({
+        const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
             id: props.letterId || '',
         });
+
         const style = {
             transform: CSS.Translate.toString(transform),
         };
 
-        return <View ref={setNodeRef} style={style} attributes={attributes} listeners={listeners} {...props} />;
+        return <View ref={setNodeRef} isDragging={isDragging} style={style} attributes={attributes} listeners={listeners} {...props} />;
     }
 
     return DraggabaleLetterModel;

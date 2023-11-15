@@ -12,6 +12,7 @@ const Letter = Model(withStyles<IEncapsulatedProps, HTMLDivElement>(
 
 Letter.defaultProps = {
 	isSelected: false,
+	className: '',
 	onClick: () => {}
 }
 Letter.displayName = 'Letter';

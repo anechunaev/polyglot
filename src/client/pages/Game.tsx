@@ -23,16 +23,23 @@ function GamePage({ }: IProps) {
             distance: 10
         }
     });
-    const handleDragStart = ({active}: DragStartEvent) => {
-        // console.log('-----data----', active);
-    }
 
     const handleDragEnd = ({ over, active }: DragEndEvent) => {
         if (over) {
-            setDroppedLetters(state => ({
-                ...state,
-                [over.id]: active.id
-            }));
+            setDroppedLetters(state => {
+                const letterId = state[over.id];
+
+                // if cell is not empty
+                if (letterId) {
+                    state[over.id] = null;
+                    updateLetterIds(state => [...state, letterId]);
+                }
+
+                // if letter moves from other cell, then do smthg..
+
+                state[over.id] = active.id;
+                return state;
+            });
             updateLetterIds(state => {
                 const letterIndex = state.indexOf(active.id as string);
 
@@ -51,7 +58,7 @@ function GamePage({ }: IProps) {
 
     return (
         <div className={styles.game}>
-            <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={useSensors(mouseSensor)}>
+            <DndContext onDragEnd={handleDragEnd} sensors={useSensors(mouseSensor)}>
                 <Field>
                     {(schema as ICellProps['bonus'][][]).map((row, index) => (
                         <div

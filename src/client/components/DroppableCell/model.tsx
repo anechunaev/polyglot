@@ -10,13 +10,9 @@ function Model(
     View: React.ForwardRefExoticComponent<React.PropsWithoutRef<ICellProps & IProps> & React.RefAttributes<unknown>>,
 ): React.ComponentType<ICellProps & IProps> {
     function DroppableCellModel(props: ICellProps & IProps) {
-        const { isOver, setNodeRef, node } = useDroppable({
+        const { setNodeRef } = useDroppable({
             id: props.id || '',
         });
-
-        // if (isOver) {
-        // //   console.log('isOver', isOver, node);
-        // }
 
         const newProps = {...props};
         delete newProps.id;

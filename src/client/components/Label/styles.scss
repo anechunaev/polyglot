@@ -1,0 +1,13 @@
+@use '../../theme' as *;
+
+.label {
+	@include font($variant: 'label');
+
+	&.disabled {
+		color: var(--color-grey-500);
+	}
+
+	&.padding-small {
+		padding: 0 var(--padding-horizontal-text-field);
+	}
+}

@@ -1,0 +1,31 @@
+@use '../../theme' as *;
+
+.wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap);
+}
+
+.textField {
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 30px;
+	padding: 0 var(--padding-horizontal-text-field);
+	background-color: var(--color-white);
+	border: 1px solid var(--color-grey-400);
+	border-radius: var(--border-radius);
+	color: var(--color-grey-700);
+	@include font($variant: 'regular');
+	white-space: nowrap;
+	cursor: pointer;
+
+	&.invalid {
+		border-color: var(--color-red-600);
+	}
+
+	&[disabled] {
+		border-color: var(--color-grey-200);
+		color: var(--color-grey-500);
+		cursor: default;
+	}
+}

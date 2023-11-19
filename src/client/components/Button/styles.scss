@@ -9,7 +9,7 @@
 	padding: 12px 30px;
 	background-color: var(--color-white);
 	border: 1px solid var(--color-grey-400);
-	border-radius: $borderRadius;
+	border-radius: var(--border-radius);
 	color: var(--color-grey-700);
 	@include font($variant: 'regular');
 	white-space: nowrap;

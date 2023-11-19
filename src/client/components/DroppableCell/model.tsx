@@ -4,6 +4,10 @@ import type { IProps as ICellProps } from '../Cell/view';
 
 export interface IProps {
     id?: string;
+    position?: {
+        x: number;
+        y: number;
+    }
 }
 
 function Model(
@@ -12,6 +16,9 @@ function Model(
     function DroppableCellModel(props: ICellProps & IProps) {
         const { setNodeRef } = useDroppable({
             id: props.id || '',
+            data: {
+                position: props.position
+            }
         });
 
         const newProps = {...props};

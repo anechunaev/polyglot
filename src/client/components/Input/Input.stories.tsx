@@ -1,10 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
-import TextField from './index';
+import Input from './index';
 
 const meta = {
-	title: 'App Components/TextField',
-	component: TextField,
+	title: 'App Components/Input',
+	component: Input,
 	parameters: {
 		docs: {
 			description: {
@@ -19,7 +19,7 @@ const meta = {
 		label: { control: 'text' },
 		hint: { control: 'text' },
 	},
-} satisfies Meta<typeof TextField>;
+} satisfies Meta<typeof Input>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;

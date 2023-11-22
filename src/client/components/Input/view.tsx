@@ -17,7 +17,7 @@ export interface IProps {
 	hint?: string;
 }
 
-function TextFieldView({
+function InputView({
 	classes,
 	icon,
 	disabled,
@@ -59,7 +59,7 @@ function TextFieldView({
 	);
 }
 
-TextFieldView.defaultProps = {
+InputView.defaultProps = {
 	disabled: false,
 	invalid: false,
 	icon: null,
@@ -69,4 +69,4 @@ TextFieldView.defaultProps = {
 	placeholder: '',
 };
 
-export default TextFieldView;
+export default InputView;

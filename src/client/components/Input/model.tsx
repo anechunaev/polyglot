@@ -13,7 +13,7 @@ export interface IProps {
 }
 
 function Model(View: React.ComponentType<IProps>): React.ComponentType<IProps> {
-	function TextFieldModel({ children, onChange: onChangeProp, ...rest }: IProps) {
+	function InputModel({ children, onChange: onChangeProp, ...rest }: IProps) {
 		const [value, setValue] = React.useState<string>('');
 
 		const onChange = (e) => {
@@ -28,7 +28,7 @@ function Model(View: React.ComponentType<IProps>): React.ComponentType<IProps> {
 		);
 	}
 
-	TextFieldModel.defaultProps = {
+	InputModel.defaultProps = {
 		disabled: false,
 		invalid: false,
 		placeholder: '',
@@ -39,7 +39,7 @@ function Model(View: React.ComponentType<IProps>): React.ComponentType<IProps> {
 		value: '',
 	};
 
-	return TextFieldModel;
+	return InputModel;
 }
 
 export default Model;

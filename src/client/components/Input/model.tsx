@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 export interface IProps {
-	icon?: React.ReactElement | null;
 	disabled?: boolean;
 	invalid?: boolean;
 	placeholder?: string;
@@ -33,7 +32,6 @@ function Model(View: React.ComponentType<IProps>): React.ComponentType<IProps> {
 		invalid: false,
 		placeholder: '',
 		className: '',
-		icon: null,
 		label: '',
 		hint: '',
 		value: '',

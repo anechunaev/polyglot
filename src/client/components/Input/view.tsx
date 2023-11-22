@@ -6,7 +6,6 @@ import Hint from '../Hint/index';
 
 export interface IProps {
 	classes: Record<string, string>;
-	icon?: React.ReactElement | null;
 	disabled?: boolean;
 	invalid?: boolean;
 	placeholder?: string;
@@ -19,7 +18,6 @@ export interface IProps {
 
 function InputView({
 	classes,
-	icon,
 	disabled,
 	invalid,
 	placeholder,
@@ -62,7 +60,6 @@ function InputView({
 InputView.defaultProps = {
 	disabled: false,
 	invalid: false,
-	icon: null,
 	className: '',
 	hint: '',
 	label: '',

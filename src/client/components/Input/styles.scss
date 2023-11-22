@@ -6,7 +6,7 @@
 	gap: var(--gap);
 }
 
-.textField {
+.input {
 	box-sizing: border-box;
 	width: 100%;
 	min-height: 30px;
@@ -28,4 +28,8 @@
 		color: var(--color-grey-500);
 		cursor: default;
 	}
+}
+
+.inputLabel {
+	padding: 0 var(--padding-horizontal-text-field);
 }

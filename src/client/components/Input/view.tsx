@@ -2,7 +2,6 @@ import React from 'react';
 import clsx from 'clsx';
 import uuid4 from 'uuid4';
 import Label from '../Label/index';
-import Hint from '../Hint/index';
 
 export interface IProps {
 	classes: Record<string, string>;
@@ -32,7 +31,7 @@ function InputView({
 
 	return (
 		<label htmlFor={inputId} className={clsx(classes.wrapper, className)}>
-			<Label paddingType="small" disabled={disabled}>
+			<Label className={classes.inputLabel} disabled={disabled}>
 				{label}
 			</Label>
 			<input
@@ -41,7 +40,7 @@ function InputView({
 				disabled={disabled}
 				onChange={onChange}
 				className={clsx(
-					classes.textField,
+					classes.input,
 					'default-focusable',
 					{ [classes.invalid]: invalid },
 					{ 'default-focusable-invalid': invalid },
@@ -50,9 +49,9 @@ function InputView({
 				value={value}
 				{...rest}
 			/>
-			<Hint paddingType="small" invalid={invalid} disabled={disabled}>
+			<Label className={classes.inputLabel} invalid={invalid} disabled={disabled}>
 				{hint}
-			</Hint>
+			</Label>
 		</label>
 	);
 }

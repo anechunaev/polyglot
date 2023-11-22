@@ -2,7 +2,8 @@ import * as React from 'react';
 
 export interface IProps {
 	disabled?: boolean;
-	paddingType?: 'none' | 'small' | 'mid';
+	invalid?: boolean;
+	className?: string;
 	children?: string | React.ReactElement;
 }
 
@@ -13,7 +14,8 @@ function Model(View: React.ComponentType<IProps>): React.ComponentType<IProps> {
 
 	LabelModel.defaultProps = {
 		disabled: false,
-		paddingType: 'none',
+		invalid: false,
+		className: '',
 		children: '',
 	};
 

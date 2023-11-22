@@ -3,20 +3,22 @@ import clsx from 'clsx';
 
 export interface IProps {
 	disabled?: boolean;
+	invalid?: boolean;
 	classes: Record<string, string>;
+	className?: string;
 	children: string | React.ReactElement;
-	paddingType?: 'none' | 'small' | 'mid';
 }
 
-function LabelView({ classes, children, disabled, paddingType }: IProps) {
+function LabelView({ classes, className, children, invalid, disabled }: IProps) {
 	if (!children) {
 		return null;
 	}
 
 	return (
 		<div
-			className={clsx(classes.label, paddingType !== 'none' ? classes[`padding-${paddingType}`] : '', {
+			className={clsx(classes.label, className, {
 				[classes.disabled]: disabled,
+				[classes.invalid]: invalid,
 			})}
 		>
 			{children}
@@ -26,7 +28,8 @@ function LabelView({ classes, children, disabled, paddingType }: IProps) {
 
 LabelView.defaultProps = {
 	disabled: false,
-	paddingType: 'none',
+	invalid: false,
+	className: '',
 };
 
 export default LabelView;

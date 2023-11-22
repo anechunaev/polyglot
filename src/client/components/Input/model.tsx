@@ -5,26 +5,15 @@ export interface IProps {
 	invalid?: boolean;
 	placeholder?: string;
 	className?: string;
-	onChange: () => void;
+	onChange: (e: any) => void;
 	label?: string;
 	hint?: string;
 	value?: string;
 }
 
 function Model(View: React.ComponentType<IProps>): React.ComponentType<IProps> {
-	function InputModel({ children, onChange: onChangeProp, ...rest }: IProps) {
-		const [value, setValue] = React.useState<string>('');
-
-		const onChange = (e) => {
-			setValue(e.target.value);
-			onChangeProp();
-		};
-
-		return (
-			<View value={value} onChange={onChange} {...rest}>
-				{children}
-			</View>
-		);
+	function InputModel({ children, ...rest }: IProps) {
+		return <View {...rest}>{children}</View>;
 	}
 
 	InputModel.defaultProps = {

@@ -3,7 +3,7 @@
 .letter {
     position: absolute;
     z-index: 2;
-    border: 3px solid var(--color-black);
+    border: 3px solid transparent;
     background-clip: padding-box;
     border-radius: 5px;
     text-align: center;

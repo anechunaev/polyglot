@@ -14,105 +14,220 @@ import data from './data.json';
 
 const { letters }: { letters: string[] } = (data as any).players[data.active_player];
 
-interface IProps { }
-
 const FIELD_POSITION_START_X = 59;
 const FIELD_POSITION_START_Y = 9;
 
-const LETTERS_POSITION_START_X = 686;
+const LETTERS_POSITION_START_X = 727;
 const LETTERS_POSITION_START_Y = 73;
 
-function GamePage({ }: IProps) {
-    const [fieldLetters, setFieldLetters] = React.useState<string>("{}");
+const calculatePosition = (start: number, width: number, index: number) => start + width * index + index;
 
-    const mouseSensor = useSensor(MouseSensor, {
-        activationConstraint: {
-            distance: 10
-        }
-    });
+function GamePage() {
+	const [fieldLetters, setFieldLetters] = React.useState<string>('{}');
+	const [selectedLetters, setSelectedLetters] = React.useState<string[]>([]);
 
-    const handleDragEnd = ({ over, active, ...rest }: DragEndEvent) => {
-        if (over) {
-            const letterId = active.id;
-            const { position } = over.data.current as any;
+	const mouseSensor = useSensor(MouseSensor, {
+		activationConstraint: {
+			distance: 10,
+		},
+	});
 
-            setFieldLetters(state => {
-                const parsedState = JSON.parse(state);
-                parsedState[letterId] = {
-                    parent: over.id,
-                    position: {
-                        top: FIELD_POSITION_START_Y + (40 * position.y + position.y),
-                        left: FIELD_POSITION_START_X + (40 * position.x) + position.x
-                    }
-                }
+	const toogleSelected = React.useCallback(
+		(id: string) => {
+			const droppedLetters = JSON.parse(fieldLetters);
 
-                return JSON.stringify(parsedState);
-            });
-        }
-    }
+			// we cannot select letters on the field
+			if (!droppedLetters[id]?.parent) {
+				setSelectedLetters((state) => {
+					const indexOf = state.indexOf(id);
 
-    const lettersContent = React.useMemo(() => {
-        const droppedLetters = JSON.parse(fieldLetters);
+					if (indexOf !== -1) {
+						const newState = [...state];
+						newState.splice(indexOf, 1);
 
-        return (
-            <div className={styles.lettersContainer}>
-                {letters.map((letterId, i) => {
-                    const droppedLetterPosition = droppedLetters[letterId]?.position;
+						return newState;
+					}
+					return [...state, id];
+				});
+			}
+		},
+		[fieldLetters],
+	);
 
-                    return (
-                        <DraggableLetter
-                            key={h32(letterId, 0xabcd).toString()}
-                            styles={{
-                                top: droppedLetterPosition ? droppedLetterPosition.top : LETTERS_POSITION_START_Y,
-                                left: droppedLetterPosition ? droppedLetterPosition.left : LETTERS_POSITION_START_X + (40 * (i + 1) + (i + 1))
-                            }}
-                            letterId={letterId}
-                            onClick={() => { }}
-                        />
-                    )
-                })}
-            </div>
-        );
-    }, [fieldLetters]);
+	const handleDragStart = ({ active }: DragStartEvent) => {
+		const indexOf = selectedLetters.indexOf(active.id.toString());
 
-    const droppedLetters = JSON.parse(fieldLetters);
+		if (indexOf !== -1) {
+			setSelectedLetters((state) => {
+				const newState = [...state];
+				newState.splice(indexOf, 1);
 
-    return (
-        <div className={styles.game}>
-            <DndContext onDragEnd={handleDragEnd} sensors={useSensors(mouseSensor)}>
-                <Field>
-                    {(schema as ICellProps['bonus'][][]).map((row, index) => (
-                        <div
-                            key={h32(JSON.stringify(row) + index + "row", 0xabcd).toString()}
-                            style={{ width: '614px', gap: '1px', display: 'flex', margin: 0 }}
-                        >
-                            {row.map((bonus, i) => {
-                                const id = i.toString() + index.toString();
-                                return (
-                                    <DroppableCell
-                                        id={id}
-                                        disabled={Object.values(droppedLetters)?.some((letter) => (letter as any)?.parent === id)}
-                                        position={{
-                                            x: i,
-                                            y: index
-                                        }}
-                                        key={h32((bonus || '') + id + "dr-cell", 0xabcd).toString()}
-                                        bonus={bonus}
-                                    >
-                                    </DroppableCell>
-                                );
-                            }
-                            )}
-                        </div>
-                    ))}
-                </Field>
-                <Sidebar />
-                {
-                    createPortal(lettersContent, document.body)
-                }
-            </DndContext>
-        </div>
-    );
+				return newState;
+			});
+		}
+	};
+
+	const handleDoubleClick = React.useCallback(
+		(id: string, initialPosition: { x: number; y: number }, e: React.SyntheticEvent) => {
+			e.preventDefault();
+
+			const droppedLetters = JSON.parse(fieldLetters);
+
+			// the letter is on the field
+			if (droppedLetters[id]?.parent) {
+				setFieldLetters(() => {
+					droppedLetters[id] = {
+						parent: null,
+						position: {
+							top: initialPosition.y,
+							left: initialPosition.x,
+						},
+					};
+
+					return JSON.stringify(droppedLetters);
+				});
+			}
+		},
+		[fieldLetters],
+	);
+
+	const onCellClick = React.useCallback(
+		(id: string, pos: { x: number; y: number }) => {
+			if (selectedLetters.length) {
+				const letterId = selectedLetters[0];
+
+				setFieldLetters((state) => {
+					const parsedState = JSON.parse(state);
+					parsedState[letterId] = {
+						parent: id,
+						position: {
+							top: calculatePosition(FIELD_POSITION_START_Y, 40, pos.y),
+							left: calculatePosition(FIELD_POSITION_START_X, 40, pos.x),
+						},
+					};
+
+					return JSON.stringify(parsedState);
+				});
+
+				const indexOf = selectedLetters.indexOf(letterId.toString());
+
+				setSelectedLetters((state) => {
+					const newState = [...state];
+					newState.splice(indexOf, 1);
+
+					return newState;
+				});
+			}
+		},
+		[selectedLetters],
+	);
+
+	const handleDragEnd = ({ over, active }: DragEndEvent) => {
+		const letterId = active.id;
+		if (over) {
+			const { position } = over.data.current as any;
+
+			setFieldLetters((state) => {
+				const parsedState = JSON.parse(state);
+				parsedState[letterId] = {
+					parent: over.id,
+					position: {
+						top: calculatePosition(FIELD_POSITION_START_Y, 40, position.y),
+						left: calculatePosition(FIELD_POSITION_START_X, 40, position.x),
+					},
+				};
+
+				return JSON.stringify(parsedState);
+			});
+		} else {
+			// set letter to it's initial position
+			const { initialPosition } = active.data.current as any;
+
+			setFieldLetters((state) => {
+				const parsedState = JSON.parse(state);
+				parsedState[letterId] = {
+					parent: null,
+					position: {
+						top: initialPosition.y,
+						left: initialPosition.x,
+					},
+				};
+
+				return JSON.stringify(parsedState);
+			});
+		}
+	};
+
+	const lettersContent = React.useMemo(() => {
+		const droppedLetters = JSON.parse(fieldLetters);
+
+		return (
+			<div className={styles.lettersContainer}>
+				{letters.map((letterId, i) => {
+					const droppedLetterPosition = droppedLetters[letterId]?.position;
+					const posLeft = calculatePosition(LETTERS_POSITION_START_X, 40, i);
+
+					const initialPosition = {
+						y: LETTERS_POSITION_START_Y,
+						x: posLeft,
+					};
+					return (
+						<DraggableLetter
+							key={h32(letterId, 0xabcd).toString()}
+							styles={{
+								top: droppedLetterPosition ? droppedLetterPosition.top : LETTERS_POSITION_START_Y,
+								left: droppedLetterPosition ? droppedLetterPosition.left : posLeft,
+							}}
+							initialPosition={initialPosition}
+							onDoubleClick={(evt: any) => handleDoubleClick(letterId, initialPosition, evt)}
+							isSelected={selectedLetters.includes(letterId)}
+							letterId={letterId}
+							onClick={() => toogleSelected(letterId)}
+						/>
+					);
+				})}
+			</div>
+		);
+	}, [fieldLetters, selectedLetters, handleDoubleClick, toogleSelected]);
+
+	const droppedLetters = JSON.parse(fieldLetters);
+
+	return (
+		<div className={styles.game}>
+			<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={useSensors(mouseSensor)}>
+				<Field>
+					{(schema as ICellProps['bonus'][][]).map((row, index) => (
+						<div
+							key={h32(`${JSON.stringify(row) + index}row`, 0xabcd).toString()}
+							style={{ width: '614px', gap: '1px', display: 'flex', margin: 0 }}
+						>
+							{row.map((bonus, i) => {
+								const id = i.toString() + index.toString();
+								const position = {
+									x: i,
+									y: index,
+								};
+								return (
+									<DroppableCell
+										id={id}
+										disabled={Object.values(droppedLetters)?.some(
+											(letter) => (letter as any)?.parent === id,
+										)}
+										position={position}
+										key={h32(`${(bonus || '') + id}dr-cell`, 0xabcd).toString()}
+										bonus={bonus}
+										onClick={() => onCellClick(id, position)}
+									/>
+								);
+							})}
+						</div>
+					))}
+				</Field>
+				<Sidebar />
+				{createPortal(lettersContent, document.body)}
+			</DndContext>
+		</div>
+	);
 }
 
 GamePage.displayName = 'GamePage';

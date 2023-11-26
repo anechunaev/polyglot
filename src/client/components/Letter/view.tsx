@@ -5,9 +5,9 @@ import type { DraggableAttributes } from '@dnd-kit/core';
 export type SyntheticListenerMap = Record<string, Function>;
 
 export interface IProps {
-	onClick?: () => void;
+	onClick?: (e: React.SyntheticEvent) => void;
+	onDoubleClick?: (e: React.SyntheticEvent) => void;
 	isSelected?: boolean;
-	className?: string;
 	letter: {
 		value: string;
 		price: number;
@@ -15,9 +15,9 @@ export interface IProps {
 }
 
 export interface IEncapsulatedProps extends IProps {
-    style?: Record<string, string | undefined>;
-    attributes?: DraggableAttributes;
-    listeners?: SyntheticListenerMap | undefined;
+	style?: Record<string, string | undefined>;
+	attributes?: DraggableAttributes;
+	listeners?: SyntheticListenerMap | undefined;
 }
 
 export interface IWithClassesProps {
@@ -25,13 +25,31 @@ export interface IWithClassesProps {
 }
 
 function LetterView(
-	{ classes, isSelected, className, onClick, letter, attributes, listeners, ...rest }: React.PropsWithoutRef<IEncapsulatedProps & IWithClassesProps>,
+	{
+		classes,
+		isSelected,
+		onClick,
+		onDoubleClick,
+		letter,
+		attributes,
+		listeners,
+		...rest
+	}: React.PropsWithoutRef<IEncapsulatedProps & IWithClassesProps>,
 	ref: any,
 ) {
 	return (
-		<div ref={ref} onClick={onClick} className={clsx(classes.letter, className, {
-			[classes.selected]: isSelected
-		})} {...attributes} {...listeners} {...rest}>
+		<div
+			ref={ref}
+			onClick={onClick}
+			onContextMenu={onDoubleClick}
+			onDoubleClick={onDoubleClick}
+			className={clsx(classes.letter, classes.elevated, classes.draggable, {
+				[classes.selected]: isSelected,
+			})}
+			{...attributes}
+			{...listeners}
+			{...rest}
+		>
 			<div className={classes.priceOverlay}>
 				<span className={classes.price}>{letter.price}</span>
 			</div>

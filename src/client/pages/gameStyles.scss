@@ -2,13 +2,12 @@
     display: flex;
     gap: 36px;
     margin: 50px;
+    user-select: none;
 }
 
 .lettersContainer {
     position: absolute;
     top: 0;
-    // top: 73px;
-    // left: 684px;
 }
 
 .droppable {

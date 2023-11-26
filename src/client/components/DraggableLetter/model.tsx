@@ -7,26 +7,42 @@ import type { IProps as IViewProps } from './view';
 export type SyntheticListenerMap = Record<string, Function>;
 
 export interface IProps {
-    styles?: Record<string, string | number>
+	styles: Record<string, string | number>;
+	initialPosition: {
+		x: number;
+		y: number;
+	};
 }
 
 function Model(
-    View: React.ComponentType<React.PropsWithoutRef<IViewProps & ILetterProps> & React.RefAttributes<unknown>>    // View: React.ForwardRefExoticComponent<React.PropsWithoutRef<ILetterProps & IViewProps> & React.RefAttributes<unknown>>,
+	View: React.ComponentType<React.PropsWithoutRef<IViewProps & ILetterProps> & React.RefAttributes<unknown>>,
 ): React.ForwardRefRenderFunction<unknown, ILetterProps & IProps> {
-    function DraggabaleLetterModel(props: ILetterProps & IProps) {
-        const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
-            id: props.letterId || '',
-        });
+	function DraggabaleLetterModel(props: ILetterProps & IProps) {
+		const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+			id: props.letterId || '',
+			data: {
+				initialPosition: props.initialPosition,
+			},
+		});
 
-        const style = {
-            transform: CSS.Translate.toString(transform),
-            ...(props.styles || {})
-        };
+		const style = {
+			transform: CSS.Translate.toString(transform),
+			...(props.styles || {}),
+		};
 
-        return <View ref={setNodeRef} isDragging={isDragging} style={style} attributes={attributes} listeners={listeners} {...props} />;
-    }
+		return (
+			<View
+				ref={setNodeRef}
+				isDragging={isDragging}
+				style={style}
+				attributes={attributes}
+				listeners={listeners}
+				{...props}
+			/>
+		);
+	}
 
-    return DraggabaleLetterModel;
+	return DraggabaleLetterModel;
 }
 
 export default Model;

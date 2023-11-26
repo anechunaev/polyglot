@@ -3,7 +3,7 @@ function isObject(item: unknown): boolean {
 }
 export function mergeObjectStyles<T extends object>(target: T, ...sources: Partial<T>[]): T {
 	if (!sources.length) return target;
-	const source  = sources.shift() as Record<string, any>;
+	const source = sources.shift() as Record<string, any>;
 
 	if (isObject(target) && isObject(source)) {
 		const objectTarget = target as Record<string, any>;
@@ -12,7 +12,7 @@ export function mergeObjectStyles<T extends object>(target: T, ...sources: Parti
 			if (isObject((source as Record<string, any>)[key])) {
 				if (!objectTarget[key]) Object.assign(objectTarget, { [key]: {} });
 				mergeObjectStyles(objectTarget[key], source[key]);
-			} else {
+			} else if (!objectTarget[key]?.split(' ').includes(source[key])) {
 				objectTarget[key] += ` ${source[key]}`;
 			}
 		}

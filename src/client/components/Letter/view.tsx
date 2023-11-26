@@ -6,6 +6,7 @@ export type SyntheticListenerMap = Record<string, Function>;
 
 export interface IProps {
 	onClick?: (e: React.SyntheticEvent) => void;
+	onRightClick?: (e?: React.SyntheticEvent) => void;
 	onDoubleClick?: (e: React.SyntheticEvent) => void;
 	isSelected?: boolean;
 	letter: {
@@ -29,6 +30,8 @@ function LetterView(
 		classes,
 		isSelected,
 		onClick,
+		onRightClick,
+		onDoubleClick,
 		letter,
 		attributes,
 		listeners,
@@ -40,8 +43,8 @@ function LetterView(
 		<div
 			ref={ref}
 			onClick={onClick}
-			onContextMenu={onClick}
-			onDoubleClick={onClick}
+			onContextMenu={onRightClick}
+			onDoubleClick={onDoubleClick}
 			className={clsx(classes.letter, classes.elevated, classes.draggable, {
 				[classes.selected]: isSelected,
 			})}

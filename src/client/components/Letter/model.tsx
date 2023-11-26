@@ -10,6 +10,8 @@ export interface IProps {
 	letterId: string;
 	isSelected?: boolean;
 	onClick?: (e?: React.SyntheticEvent) => void;
+	onRightClick?: (e?: React.SyntheticEvent) => void;
+	onDoubleClick?: (e?: React.SyntheticEvent) => void;
 }
 
 export interface IEncapsulatedProps {
@@ -44,6 +46,8 @@ function Model(
 	LetterModel.defaultProps = {
 		isSelected: false,
 		onClick: () => {},
+		onRightClick: () => {},
+		onDoubleClick: () => {},
 		classes: {},
 		style: undefined,
 		attributes: undefined,

@@ -23,6 +23,7 @@ function DraggableLetter(props: React.PropsWithoutRef<IProps & ILetterModelProps
 			letterId={props.letterId}
 			onClick={props.onClick}
 			onDoubleClick={props.onDoubleClick}
+			onRightClick={props.onRightClick}
 			classes={{ ...props.classes, elevated: props.isDragging ? props.classes.elevated : '' }}
 			attributes={props.attributes}
 			listeners={props.listeners}

@@ -14,7 +14,7 @@ export interface IProps {
 }
 
 export interface IEncapsulatedProps {
-	classes: Record<string, string>;
+	classes?: Record<string, string>;
 	style?: Record<string, string | undefined>;
 	attributes?: DraggableAttributes;
 	listeners?: SyntheticListenerMap | undefined;
@@ -46,6 +46,7 @@ function Model(
 		isSelected: false,
 		onDoubleClick: () => {},
 		onClick: () => {},
+		classes: {},
 		style: undefined,
 		attributes: undefined,
 		listeners: undefined,

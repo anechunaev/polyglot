@@ -5,11 +5,9 @@ import withStyles from '../withStyles';
 import styles from './styles.scss';
 
 const Letter = Model(
-	withStyles<IEncapsulatedProps & IWithClassesProps, HTMLDivElement>(
-		React.forwardRef<HTMLDivElement, IEncapsulatedProps & IWithClassesProps>(View),
-		styles,
-		{ withMergeClasses: false },
-	),
+	withStyles(React.forwardRef<HTMLDivElement, IEncapsulatedProps & IWithClassesProps>(View), styles, {
+		withMergeClasses: false,
+	}),
 );
 
 Letter.defaultProps = {

@@ -1,12 +1,16 @@
 @use '../../theme' as *;
 
-.button {
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	flex-shrink: 0;
-	min-height: 40px;
-	padding: 12px 30px;
+.wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: var(--gap);
+}
+
+.input {
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 30px;
+	padding: 0 var(--padding-horizontal-text-field);
 	background-color: var(--color-white);
 	border: 1px solid var(--color-grey-400);
 	border-radius: var(--border-radius);
@@ -15,9 +19,8 @@
 	white-space: nowrap;
 	cursor: pointer;
 
-	&:hover:not([disabled]) {
-		border-color: var(--color-blue-500);
-		color: var(--color-blue-600);
+	&.invalid {
+		border-color: var(--color-red-600);
 	}
 
 	&[disabled] {
@@ -25,4 +28,8 @@
 		color: var(--color-grey-500);
 		cursor: default;
 	}
+}
+
+.inputLabel {
+	padding: 0 var(--padding-horizontal-text-field);
 }

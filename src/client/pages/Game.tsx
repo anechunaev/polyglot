@@ -16,21 +16,22 @@ const { letters }: { letters: string[] } = (data as any).players[data.active_pla
 
 interface IProps { }
 
-const FIELD_POSITION_START_X = 20;
+const FIELD_POSITION_START_X = 59;
 const FIELD_POSITION_START_Y = 9;
 
-const LETTERS_POSITION_START_X = 684;
-const LETTERS_POSITION_START_Y = 73
+const LETTERS_POSITION_START_X = 686;
+const LETTERS_POSITION_START_Y = 73;
 
 function GamePage({ }: IProps) {
     const [fieldLetters, setFieldLetters] = React.useState<string>("{}");
+
     const mouseSensor = useSensor(MouseSensor, {
         activationConstraint: {
             distance: 10
         }
     });
 
-    const handleDragEnd = ({ over, active }: DragEndEvent) => {
+    const handleDragEnd = ({ over, active, ...rest }: DragEndEvent) => {
         if (over) {
             const letterId = active.id;
             const { position } = over.data.current as any;
@@ -38,8 +39,11 @@ function GamePage({ }: IProps) {
             setFieldLetters(state => {
                 const parsedState = JSON.parse(state);
                 parsedState[letterId] = {
-                    top: FIELD_POSITION_START_Y + (40 * position.y + position.y),
-                    left:FIELD_POSITION_START_X + (40 * (position.x + 1) + ((position.x + 1) - 2))
+                    parent: over.id,
+                    position: {
+                        top: FIELD_POSITION_START_Y + (40 * position.y + position.y),
+                        left: FIELD_POSITION_START_X + (40 * position.x) + position.x
+                    }
                 }
 
                 return JSON.stringify(parsedState);
@@ -49,26 +53,29 @@ function GamePage({ }: IProps) {
 
     const lettersContent = React.useMemo(() => {
         const droppedLetters = JSON.parse(fieldLetters);
+
         return (
             <div className={styles.lettersContainer}>
-            {letters.map((letterId, i) => {
-                const droppedLetterPosition = droppedLetters[letterId];
+                {letters.map((letterId, i) => {
+                    const droppedLetterPosition = droppedLetters[letterId]?.position;
 
-                return (
-                    <DraggableLetter
-                        key={h32(letterId, 0xabcd).toString()}
-                        styles={{
-                            top: droppedLetterPosition ? droppedLetterPosition.top : LETTERS_POSITION_START_Y,
-                            left: droppedLetterPosition ? droppedLetterPosition.left : LETTERS_POSITION_START_X + (40 * (i + 1) + (i + 1))
-                        }}
-                        letterId={letterId}
-                        onClick={() => { }}
-                    />
-                )
-            })}
-        </div>
+                    return (
+                        <DraggableLetter
+                            key={h32(letterId, 0xabcd).toString()}
+                            styles={{
+                                top: droppedLetterPosition ? droppedLetterPosition.top : LETTERS_POSITION_START_Y,
+                                left: droppedLetterPosition ? droppedLetterPosition.left : LETTERS_POSITION_START_X + (40 * (i + 1) + (i + 1))
+                            }}
+                            letterId={letterId}
+                            onClick={() => { }}
+                        />
+                    )
+                })}
+            </div>
         );
     }, [fieldLetters]);
+
+    const droppedLetters = JSON.parse(fieldLetters);
 
     return (
         <div className={styles.game}>
@@ -77,13 +84,14 @@ function GamePage({ }: IProps) {
                     {(schema as ICellProps['bonus'][][]).map((row, index) => (
                         <div
                             key={h32(JSON.stringify(row) + index + "row", 0xabcd).toString()}
-                            style={{ width: '610px', gap: '1px', display: 'flex', margin: 0 }}
+                            style={{ width: '614px', gap: '1px', display: 'flex', margin: 0 }}
                         >
                             {row.map((bonus, i) => {
                                 const id = i.toString() + index.toString();
                                 return (
                                     <DroppableCell
                                         id={id}
+                                        disabled={Object.values(droppedLetters)?.some((letter) => (letter as any)?.parent === id)}
                                         position={{
                                             x: i,
                                             y: index

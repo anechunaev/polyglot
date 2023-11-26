@@ -3,6 +3,7 @@ import { useDroppable } from '@dnd-kit/core';
 import type { IProps as ICellProps } from '../Cell/view';
 
 export interface IProps {
+    disabled?: boolean;
     id?: string;
     position?: {
         x: number;
@@ -16,6 +17,7 @@ function Model(
     function DroppableCellModel(props: ICellProps & IProps) {
         const { setNodeRef } = useDroppable({
             id: props.id || '',
+            disabled: props.disabled,
             data: {
                 position: props.position
             }
@@ -23,6 +25,7 @@ function Model(
 
         const newProps = {...props};
         delete newProps.id;
+        delete newProps.disabled;
 
         return <View ref={setNodeRef} {...newProps} />
     }

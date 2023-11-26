@@ -30,7 +30,7 @@ function Component() {
 			{schema.map((row, index) => (
 				<div
 					key={h32(JSON.stringify(row) + index, 0xabcd).toString()}
-					style={{ width: '610px', gap: '1px', display: 'flex', margin: 0 }}
+					style={{ width: '614px', gap: '1px', display: 'flex', margin: 0 }}
 				>
 					{row.map((bonus, i) => (
 						<Cell key={h32((bonus || '') + i, 0xabcd).toString()} bonus={bonus} />

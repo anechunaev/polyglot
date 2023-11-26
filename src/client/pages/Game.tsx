@@ -20,7 +20,9 @@ const FIELD_POSITION_START_Y = 9;
 const LETTERS_POSITION_START_X = 727;
 const LETTERS_POSITION_START_Y = 73;
 
-const calculatePosition = (start: number, width: number, index: number) => start + width * index + index;
+const LETTER_WIDTH = 40;
+
+const calculatePosition = (start: number, offset: number) => start + LETTER_WIDTH * offset + offset;
 
 function GamePage() {
 	const [fieldLetters, setFieldLetters] = React.useState<string>('{}');
@@ -88,8 +90,8 @@ function GamePage() {
 					parsedState[letterId] = {
 						parent: id,
 						position: {
-							top: calculatePosition(FIELD_POSITION_START_Y, 40, pos.y),
-							left: calculatePosition(FIELD_POSITION_START_X, 40, pos.x),
+							top: calculatePosition(FIELD_POSITION_START_Y, pos.y),
+							left: calculatePosition(FIELD_POSITION_START_X, pos.x),
 						},
 					};
 
@@ -135,8 +137,8 @@ function GamePage() {
 				parsedState[letterId] = {
 					parent: over.id,
 					position: {
-						top: calculatePosition(FIELD_POSITION_START_Y, 40, position.y),
-						left: calculatePosition(FIELD_POSITION_START_X, 40, position.x),
+						top: calculatePosition(FIELD_POSITION_START_Y, position.y),
+						left: calculatePosition(FIELD_POSITION_START_X, position.x),
 					},
 				};
 
@@ -168,7 +170,7 @@ function GamePage() {
 			<div className={styles.lettersContainer}>
 				{letters.map((letterId, i) => {
 					const droppedLetterPosition = droppedLetters[letterId]?.position;
-					const posLeft = calculatePosition(LETTERS_POSITION_START_X, 40, i);
+					const posLeft = calculatePosition(LETTERS_POSITION_START_X, i);
 
 					const initialPosition = {
 						y: LETTERS_POSITION_START_Y,

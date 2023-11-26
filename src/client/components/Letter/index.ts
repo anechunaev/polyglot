@@ -13,7 +13,6 @@ const Letter = Model(
 Letter.defaultProps = {
 	isSelected: false,
 	onClick: () => {},
-	onDoubleClick: () => {},
 };
 Letter.displayName = 'Letter';
 

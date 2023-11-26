@@ -29,7 +29,6 @@ function LetterView(
 		classes,
 		isSelected,
 		onClick,
-		onDoubleClick,
 		letter,
 		attributes,
 		listeners,
@@ -41,8 +40,8 @@ function LetterView(
 		<div
 			ref={ref}
 			onClick={onClick}
-			onContextMenu={onDoubleClick}
-			onDoubleClick={onDoubleClick}
+			onContextMenu={onClick}
+			onDoubleClick={onClick}
 			className={clsx(classes.letter, classes.elevated, classes.draggable, {
 				[classes.selected]: isSelected,
 			})}

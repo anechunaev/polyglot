@@ -32,27 +32,19 @@ function GamePage() {
 		},
 	});
 
-	const toogleSelected = React.useCallback(
-		(id: string) => {
-			const droppedLetters = JSON.parse(fieldLetters);
+	const toogleSelected = React.useCallback((id: string) => {
+		setSelectedLetters((state) => {
+			const indexOf = state.indexOf(id);
 
-			// we cannot select letters on the field
-			if (!droppedLetters[id]?.parent) {
-				setSelectedLetters((state) => {
-					const indexOf = state.indexOf(id);
+			if (indexOf !== -1) {
+				const newState = [...state];
+				newState.splice(indexOf, 1);
 
-					if (indexOf !== -1) {
-						const newState = [...state];
-						newState.splice(indexOf, 1);
-
-						return newState;
-					}
-					return [...state, id];
-				});
+				return newState;
 			}
-		},
-		[fieldLetters],
-	);
+			return [...state, id];
+		});
+	}, []);
 
 	const handleDragStart = ({ active }: DragStartEvent) => {
 		const indexOf = selectedLetters.indexOf(active.id.toString());
@@ -67,26 +59,21 @@ function GamePage() {
 		}
 	};
 
-	const handleDoubleClick = React.useCallback(
-		(id: string, initialPosition: { x: number; y: number }, e: React.SyntheticEvent) => {
-			e.preventDefault();
-
+	const moveLetter = React.useCallback(
+		(id: string, initialPosition: { x: number; y: number }) => {
 			const droppedLetters = JSON.parse(fieldLetters);
 
-			// the letter is on the field
-			if (droppedLetters[id]?.parent) {
-				setFieldLetters(() => {
-					droppedLetters[id] = {
-						parent: null,
-						position: {
-							top: initialPosition.y,
-							left: initialPosition.x,
-						},
-					};
+			setFieldLetters(() => {
+				droppedLetters[id] = {
+					parent: null,
+					position: {
+						top: initialPosition.y,
+						left: initialPosition.x,
+					},
+				};
 
-					return JSON.stringify(droppedLetters);
-				});
-			}
+				return JSON.stringify(droppedLetters);
+			});
 		},
 		[fieldLetters],
 	);
@@ -120,6 +107,22 @@ function GamePage() {
 			}
 		},
 		[selectedLetters],
+	);
+
+	const onLetterClick = React.useCallback(
+		(e: React.SyntheticEvent, id: string, pos?: { x: number; y: number }) => {
+			e.preventDefault();
+
+			const droppedLetters = JSON.parse(fieldLetters);
+
+			// the letter is on the field
+			if (droppedLetters[id]?.parent) {
+				moveLetter(id, pos!);
+			} else {
+				toogleSelected(id);
+			}
+		},
+		[fieldLetters, moveLetter, toogleSelected],
 	);
 
 	const handleDragEnd = ({ over, active }: DragEndEvent) => {
@@ -179,16 +182,15 @@ function GamePage() {
 								left: droppedLetterPosition ? droppedLetterPosition.left : posLeft,
 							}}
 							initialPosition={initialPosition}
-							onDoubleClick={(evt: any) => handleDoubleClick(letterId, initialPosition, evt)}
 							isSelected={selectedLetters.includes(letterId)}
 							letterId={letterId}
-							onClick={() => toogleSelected(letterId)}
+							onClick={(e: any) => onLetterClick(e, letterId, initialPosition)}
 						/>
 					);
 				})}
 			</div>
 		);
-	}, [fieldLetters, selectedLetters, handleDoubleClick, toogleSelected]);
+	}, [fieldLetters, selectedLetters, onLetterClick]);
 
 	const droppedLetters = JSON.parse(fieldLetters);
 

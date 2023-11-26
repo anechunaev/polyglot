@@ -9,7 +9,6 @@ export type SyntheticListenerMap = Record<string, Function>;
 export interface IProps {
 	letterId: string;
 	isSelected?: boolean;
-	onDoubleClick?: (e?: React.SyntheticEvent) => void;
 	onClick?: (e?: React.SyntheticEvent) => void;
 }
 
@@ -44,7 +43,6 @@ function Model(
 
 	LetterModel.defaultProps = {
 		isSelected: false,
-		onDoubleClick: () => {},
 		onClick: () => {},
 		classes: {},
 		style: undefined,

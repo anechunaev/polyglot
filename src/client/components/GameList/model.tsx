@@ -5,9 +5,24 @@ import { EVENTS } from '../../../constants';
 
 export interface IProps { }
 
+export interface IGameState {
+    active_player: UserId;
+    players: {
+        [playerId: string]: IPlayer
+    };
+    spectators: IUser[];
+    letters: Letters;
+    field: Field
+    timer: {
+        time: number;
+        total: number;
+    };
+}
+
 function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProps> {
     return function GameListModel(_props: IProps) {
         const [gameList, updateGameList] = React.useState<string[]>(() => []);
+        const [gameState, updateGameState] = React.useState<IGameState>();
         const [timer, setTimer] = React.useState<{ time?: number; total?: number; }>({});
         const eventBus = new EventBus();
 
@@ -43,7 +58,11 @@ function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProp
             });
         }, [eventBus]);
 
-        const onNextTurn = React.useCallback(() => { }, []);
+        const onNextTurn = React.useCallback(() => {
+            eventBus.emit(EVENTS.ON_NEXT_TURN, {
+                
+            })
+        }, []);
 
         return (
             <View

@@ -1,8 +1,3 @@
-export interface Size {
-	x: number;
-	y: number;
-}
-
 export type Field = (string | null)[][];
 
 // @TODO: write an algorythm for dynamic creating field schema

@@ -1,7 +1,7 @@
 import { Server, Socket } from 'socket.io';
 import uuid4 from "uuid4";
 import type { UserId, IPlayer, ISpectator } from './User';
-import type { GameId, IGameSettings, IGame } from './GameEngine';
+import type { GameId, IGameSettings, IGame, IWord } from './GameEngine';
 import { EVENTS } from '../../constants';
 import { GameEngine } from './GameEngine';
 
@@ -34,6 +34,15 @@ export interface IJoinGamePayload extends IPayload {
 export interface IStartGamePayload extends IPayload {
     gameId: GameId;
 };
+
+export interface INextTurnPayload  extends IPayload {
+    gameId: GameId;
+    turn: {
+        words: IWord[];
+        playerId: UserId;
+    };
+    secret: string;
+}
 
 export interface Subscriptions {
     [gameId: GameId]: ClientId[]
@@ -91,6 +100,10 @@ export class GameManager {
 
             ws.on(EVENTS.GAME_START, (payload: IStartGamePayload) => {
                 this.games[payload.gameId].instance.start();
+            });
+
+            ws.on(EVENTS.ON_NEXT_TURN, (payload: INextTurnPayload) => {
+                this.games[payload.gameId].instance.nextTurn(payload.turn, payload.secret);
             });
         });
     }

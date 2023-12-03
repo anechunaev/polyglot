@@ -47,6 +47,15 @@ export interface IState {
     };
 }
 
+export interface IWord {
+    letters: LetterId[];
+    position: {
+        x: number;
+        y: number;
+    },
+    type: 'vertical' | 'horizontal';
+}
+
 export interface IGame {
     nextTurn: (turn: Turn, secret: string) => void;
     start: () => void;
@@ -121,9 +130,9 @@ export class GameEngine implements IGame {
     public nextTurn(turn: Turn, secret: string) {
         const player = this.state.players[turn.playerId];
 
-        if (secret !== player.secret) {
-            console.error("Not a valid user for the current turn");
-        }
+        // if (secret !== player.secret) {
+        //     console.error("Not a valid user for the current turn");
+        // }
         const new_secret = uuid4();
 
         if (turn.words.length) {
@@ -152,6 +161,8 @@ export class GameEngine implements IGame {
                             case "l3": letter.price * 3;
                             case "l2": letter.price * 2;
                         }
+                        // each bonus could be used only once during the game
+                        this.state.field[letter.located.position.y][letter.located.position.x] = null;
                     }
 
                     score += letter.price;
@@ -183,6 +194,8 @@ export class GameEngine implements IGame {
         if (player.score >= this.max_score) {
             this.finish(player);
         }
+
+        this.emit(this.id, EVENTS.ON_NEXT_TURN, this.state);
     }
 
     public onTimerTick = (time: number, total: number) => {

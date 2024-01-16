@@ -1,16 +1,23 @@
 @use '../../theme' as *;
 
 .letter {
+    position: absolute;
+    z-index: 2;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    border-radius: 5px;
     text-align: center;
     display: flex;
     flex: 0 1 auto;
     align-items: center;
-    position: relative;
     width: 34px;
     height: 34px;
     background-color: var(--color-white);
     color: var(--color-black);
-    border-radius: 3px;
+}
+
+.selected {
+    border-color: var(--color-blue-500);
 }
 
 .price {

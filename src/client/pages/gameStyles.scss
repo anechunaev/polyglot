@@ -1,0 +1,16 @@
+.game {
+    display: flex;
+    gap: 36px;
+    margin: 50px;
+    user-select: none;
+}
+
+.lettersContainer {
+    position: absolute;
+    top: 0;
+}
+
+.droppable {
+    width: 140px;
+    height: 140px;
+}

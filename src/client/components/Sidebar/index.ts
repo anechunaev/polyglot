@@ -1,8 +1,10 @@
-import Model, { IProps } from './model';
-import View from './view';
+import Model from './model';
+import View, {IProps} from './view';
 import withStyles from '../withStyles';
 import styles from './styles.scss';
 
 const Sidebar = Model(withStyles<IProps>(View, styles));
+
+Sidebar.displayName = 'Sidebar';
 
 export default Sidebar;

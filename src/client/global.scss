@@ -11,6 +11,7 @@ html {
 }
 
 body {
+    position: relative;
     @include theme.font($variant: 'regular');
     color: var(--color-grey-600);
 }

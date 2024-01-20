@@ -6,17 +6,11 @@
 	gap: var(--gap);
 }
 
-.input {
-	box-sizing: border-box;
-	width: 100%;
-	min-height: 30px;
-	padding: 0 var(--padding-horizontal-text-field);
-	background-color: var(--color-white);
+.inputWrapper {
+	display: flex;
+	padding: 7px 10px;
 	border: 1px solid var(--color-grey-400);
 	border-radius: var(--border-radius);
-	color: var(--color-grey-700);
-	@include font($variant: 'regular');
-	white-space: nowrap;
 	cursor: pointer;
 
 	&.invalid {
@@ -27,6 +21,22 @@
 		border-color: var(--color-grey-200);
 		color: var(--color-grey-500);
 		cursor: default;
+	}
+}
+
+.input {
+	box-sizing: border-box;
+	width: 100%;
+	min-height: 24px;
+	background-color: var(--color-white);
+	padding: 2px var(--padding-horizontal-text-field);
+	color: var(--color-grey-700);
+	@include font($variant: 'regular');
+	white-space: nowrap;
+	border: none;
+
+	&:focus {
+		outline: none;
 	}
 }
 

@@ -10,7 +10,7 @@ async function run() {
         process.exitCode = await eslintHelpers.lint(files.join(' '));
     } catch (errorResponse) {
         process.exitCode = 127;
-        throw error;
+        throw errorResponse;
     }
 }
 

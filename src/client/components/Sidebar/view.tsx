@@ -4,6 +4,8 @@ import Field from '../Field';
 import Cell from '../Cell';
 import Timer from '../TurnTimer';
 import Button from '../Button';
+import Input from '../Input';
+import SearchIcon from './assets/search.svg';
 import { PLAYER_DEFAULT_LETTERS_COUNT } from '../../../constants';
 
 export interface IProps {}
@@ -29,6 +31,13 @@ function SidebarView({ classes }: IEncapsulatedProps) {
 					Завершить ход
 				</Button>
 			</div>
+			<Input
+				Icon={SearchIcon}
+				className={classes.searchInput}
+				label="Поиск в словаре"
+				onChange={() => {}}
+				type="search"
+			/>
 		</div>
 	);
 }

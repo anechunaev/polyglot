@@ -9,7 +9,10 @@ export interface IProps {
 	invalid?: boolean;
 	placeholder?: string;
 	className?: string;
-	value: string;
+	defaultValue?: string;
+	value?: string;
+	Icon?: string | null;
+	type: string;
 	onChange: (e: any) => void;
 	label?: string;
 	hint?: string;
@@ -21,34 +24,45 @@ function InputView({
 	invalid,
 	placeholder,
 	className,
+	defaultValue,
 	value,
+	Icon,
 	onChange,
+	type = 'text',
 	label,
 	hint,
 	...rest
 }: IProps) {
 	const inputId = uuid4();
 
+	const [isFocused, setFocused] = React.useState(false);
+
 	return (
 		<label htmlFor={inputId} className={clsx(classes.wrapper, className)}>
 			<Label className={classes.inputLabel} disabled={disabled}>
 				{label}
 			</Label>
-			<input
-				id={inputId}
-				type="text"
-				disabled={disabled}
-				onChange={onChange}
-				className={clsx(
-					classes.input,
-					'default-focusable',
-					{ [classes.invalid]: invalid },
-					{ 'default-focusable-invalid': invalid },
-				)}
-				placeholder={placeholder}
-				value={value}
-				{...rest}
-			/>
+			<div
+				className={clsx(classes.inputWrapper, {
+					focused: isFocused,
+					invalid,
+					[classes.invalid]: invalid,
+				})}
+			>
+				<input
+					id={inputId}
+					type={type}
+					disabled={disabled}
+					onFocus={() => setFocused(true)}
+					onBlur={() => setFocused(false)}
+					onChange={onChange}
+					className={clsx(classes.input)}
+					placeholder={placeholder}
+					value={value || defaultValue}
+					{...rest}
+				/>
+				{Icon && <img src={Icon} alt="⏱️" className={classes.icon} />}
+			</div>
 			<Label className={classes.inputLabel} invalid={invalid} disabled={disabled}>
 				{hint}
 			</Label>
@@ -60,6 +74,9 @@ InputView.defaultProps = {
 	disabled: false,
 	invalid: false,
 	className: '',
+	defaultValue: '',
+	value: undefined,
+	Icon: undefined,
 	hint: '',
 	label: '',
 	placeholder: '',

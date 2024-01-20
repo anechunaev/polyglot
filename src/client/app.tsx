@@ -7,12 +7,12 @@ import GamePage from './pages/Game';
 
 function App() {
 	return (
-	    <React.StrictMode>
-	        <Greetings />
-	        <NoSSR>
-	            <GameList />
-	        </NoSSR>
-	    </React.StrictMode>
+		<React.StrictMode>
+			<Greetings />
+			<NoSSR>
+				<GameList />
+			</NoSSR>
+		</React.StrictMode>
 	);
 
 	// return (

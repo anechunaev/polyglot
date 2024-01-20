@@ -21,24 +21,22 @@ export interface IEncapsulatedProps extends IProps {
 
 function View(props: IEncapsulatedProps) {
     return (
-        <div className={props.classes.game}>
-            <Button
-                onClick={props.onCreateGame}
+	<div className={props.classes.game}>
+		<Button
+			onClick={props.onCreateGame}
             >
-                Create a Game
-            </Button>
-            <br />
-            {props.gameList.map(gameId => {
-                return (
-                    <div key={gameId}>
-                        <Timer {...props.timer} />
-                        <span>{gameId} </span>
-                        <Button onClick={() => props.onStartGame(gameId)}>Start </Button>
-                        <Button onClick={() => props.onNextTurn(props.gameId, props.playerId)}>Next turn </Button>
-                    </div>
-                );
-            })}
-        </div>
+			Create a Game
+		</Button>
+		<br />
+		{props.gameList.map(gameId => (
+			<div key={gameId}>
+				<Timer {...props.timer} />
+				<span>{gameId} </span>
+				<Button onClick={() => props.onStartGame(gameId)}>Start </Button>
+				<Button onClick={() => props.onNextTurn(props.gameId, props.playerId)}>Next turn </Button>
+			</div>
+                ))}
+	</div>
     );
 }
 

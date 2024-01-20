@@ -83,14 +83,14 @@ function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProp
         }, []);
 
         return (
-            <View
-                gameId={gameId!}
-                playerId={gameState?.active_player!}
-                onStartGame={onStartGame}
-                onNextTurn={onNextTurn}
-                onCreateGame={onCreateGame}
-                gameList={gameList}
-                timer={{ remainSeconds: timer.time!, seconds: timer.total! }}
+	<View
+		gameId={gameId!}
+		playerId={gameState?.active_player!}
+		onStartGame={onStartGame}
+		onNextTurn={onNextTurn}
+		onCreateGame={onCreateGame}
+		gameList={gameList}
+		timer={{ remainSeconds: timer.time!, seconds: timer.total! }}
             />
         );
     };

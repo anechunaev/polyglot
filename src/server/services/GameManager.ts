@@ -67,6 +67,7 @@ export class GameManager {
             max_players: number;
         }
     };
+
     private gameIds: GameId[];
     private subscription: Subscriptions;
     private sessions: Sessions;

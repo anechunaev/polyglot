@@ -1,16 +1,15 @@
-import type { Emit } from './GameManager';
 import uuid4 from "uuid4";
-import { ITimerInstance } from './Timer';
+import type { Emit } from './GameManager';
+import { ITimerInstance , Timer } from './Timer';
 import type { LetterId, Letters, ILettersService } from './Letters';
 import type { Field } from './helpers/generate_field_schema';
 import type { UserId, IPlayer, ISpectator, IUser } from './User';
 import { Player } from './User';
 import { generateFieldSchema } from './helpers/generate_field_schema';
-import { EVENTS, DEFAULT_TIMER_VALUE_SEC } from '../../constants';
-import { PLAYER_MAX_LETTERS_CAPACITY } from '../../constants';
-import { Timer } from './Timer';
+import { EVENTS, DEFAULT_TIMER_VALUE_SEC , PLAYER_MAX_LETTERS_CAPACITY } from '../../constants';
 import { LettersService } from './Letters';
 import letterConfig from '../config/letters_rus.json';
+
 export type GameId = string;
 
 export interface IGameSettings {

@@ -61,7 +61,7 @@ function InputView({
 					value={value || defaultValue}
 					{...rest}
 				/>
-				{Icon && <img src={Icon} alt="⏱️" className={classes.icon} />}
+				{Icon && <img src={Icon} alt="search" className={classes.icon} />}
 			</div>
 			<Label className={classes.inputLabel} invalid={invalid} disabled={disabled}>
 				{hint}

@@ -35,7 +35,7 @@ export interface IStartGamePayload extends IPayload {
     gameId: GameId;
 };
 
-export interface INextTurnPayload  extends IPayload {
+export interface INextTurnPayload extends IPayload {
     gameId: GameId;
     turn: {
         words: IWord[];
@@ -89,9 +89,10 @@ export class GameManager {
             console.log(`Client with session id ${sessionId} was connected`);
 
             ws.on(EVENTS.CREATE_GAME, (payload: ICreateGamePayload) => {
-                const game = this.createGame(payload.sessionId, payload.game);
+                const { game, gameId } = this.createGame(payload.sessionId, payload.game);
 
-                ws.emit(EVENTS.CREATE_GAME, game.getState());
+                this.emitAll(EVENTS.UPDATE_GAME_LIST, this.gameIds);
+                ws.emit(EVENTS.CREATE_GAME, { gameId, game: game.getState() });
             });
 
             ws.on(EVENTS.JOIN_GAME, (payload: IJoinGamePayload) => {
@@ -103,6 +104,7 @@ export class GameManager {
             });
 
             ws.on(EVENTS.ON_NEXT_TURN, (payload: INextTurnPayload) => {
+                console.log('---payload-----', JSON.stringify(payload));
                 this.games[payload.gameId].instance.nextTurn(payload.turn, payload.secret);
             });
         });
@@ -145,9 +147,8 @@ export class GameManager {
         };
 
         this.gameIds.push(gameId);
-        this.emitAll(EVENTS.UPDATE_GAME_LIST, this.gameIds);
 
-        return game;
+        return { gameId, game };
     }
 
     public join({ sessionId, params, user }: IJoinGamePayload) {

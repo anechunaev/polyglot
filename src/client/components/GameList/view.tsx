@@ -8,9 +8,11 @@ export interface IProps {
         seconds: number;
     }
     onCreateGame: () => void;
-    onNextTurn: (gameId: string) => void;
+    onNextTurn: (gameId: string, playerId: string) => void;
     onStartGame: (gameId: string) => void;
     gameList: string[];
+    gameId: string;
+    playerId: string;
 }
 
 export interface IEncapsulatedProps extends IProps {
@@ -19,7 +21,7 @@ export interface IEncapsulatedProps extends IProps {
 
 function View(props: IEncapsulatedProps) {
     return (
-        <div>
+        <div className={props.classes.game}>
             <Button
                 onClick={props.onCreateGame}
             >
@@ -32,11 +34,14 @@ function View(props: IEncapsulatedProps) {
                         <Timer {...props.timer} />
                         <span>{gameId} </span>
                         <Button onClick={() => props.onStartGame(gameId)}>Start </Button>
+                        <Button onClick={() => props.onNextTurn(props.gameId, props.playerId)}>Next turn </Button>
                     </div>
                 );
             })}
         </div>
     );
 }
+
+View.displayName = 'Test integration';
 
 export default View;

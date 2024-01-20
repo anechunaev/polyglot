@@ -154,21 +154,23 @@ export class GameEngine implements IGame {
                     };
                     const field_bonus = this.state.field[letter.located.position.y][letter.located.position.x];
 
+                    console.log('---field_bonus-------', field_bonus, letter.value, letter.price);
                     if (field_bonus) {
                         switch (field_bonus) {
-                            case "w3": word_multiplier + 3;
-                            case "w2": word_multiplier + 2;
-                            case "l3": letter.price * 3;
-                            case "l2": letter.price * 2;
+                            case "w3": word_multiplier += 3;
+                            case "w2": word_multiplier += 2;
+                            case "l3": letter.price *= 3;
+                            case "l2": letter.price *= 2;
                         }
                         // each bonus could be used only once during the game
                         this.state.field[letter.located.position.y][letter.located.position.x] = null;
                     }
 
+                    console.log('----LETTER.PRICE-----', score, letter.price, letter.value);
                     score += letter.price;
                     this.state.letters[letterId] = letter;
                 });
-
+                console.log('---SCORE-----', score, word_multiplier);
                 if (word_multiplier) {
                     score *= word_multiplier;
                 }

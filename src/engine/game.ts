@@ -1,16 +1,26 @@
 import uuid4 from "uuid4";
-import type { Emit } from './GameManager';
-import { ITimerInstance , Timer } from './Timer';
-import type { LetterId, Letters, ILettersService } from './Letters';
-import type { Field } from './helpers/generate_field_schema';
-import type { UserId, IPlayer, ISpectator, IUser } from './User';
-import { Player } from './User';
-import { generateFieldSchema } from './helpers/generate_field_schema';
-import { EVENTS, DEFAULT_TIMER_VALUE_SEC , PLAYER_MAX_LETTERS_CAPACITY } from '../../constants';
-import { LettersService } from './Letters';
-import letterConfig from '../config/letters_rus.json';
-
-export type GameId = string;
+import type { Emit } from '../server/controller';
+import { ITimerInstance , Timer } from '../server/services/Timer';
+import type { ILettersService } from '../server/services/Letters';
+import type {
+    LetterId,
+    Letters,
+    UserId,
+    GameId,
+    Field,
+    IPlayer,
+    ISpectator,
+    IUser
+} from '../types';
+import { generateFieldSchema } from './helpers';
+import {
+    EVENTS, DEFAULT_TIMER_VALUE_SEC,
+    PLAYER_MAX_LETTERS_CAPACITY,
+    PLAYER_DEFAULT_LETTERS_COUNT,
+    ROLES
+} from '../constants';
+import { LettersService } from '../server/services/Letters';
+import letterConfig from '../server/config/letters_rus.json';
 
 export interface IGameSettings {
     timer: number;
@@ -73,18 +83,21 @@ export class GameEngine implements IGame {
 
     public emit: Emit;
 
-    constructor(emit: Emit, id: GameId, settings: IGameSettings, playerName: IPlayer["name"]) {
+    constructor(emit: Emit, id: GameId, settings: IGameSettings, user: IUser) {
         const timer = new Timer(settings.timer || DEFAULT_TIMER_VALUE_SEC, this.onTimerTick, this.onTimerEnd);
         const letters = new LettersService(letterConfig);
-
-        const player = new Player(letters, playerName);
 
         this.id = id;
 
         this.state = {
-            active_player: player.id,
+            active_player: user.id,
             players: {
-                [player.id]: player
+                [user.id]: {
+                    ...user,
+                    letters: letters.getRandomLetters(PLAYER_DEFAULT_LETTERS_COUNT),
+                    role: ROLES.PARTICIPANT,
+                    score: 0
+                }
             },
             spectators: [],
             letters: letters.getLetters(),
@@ -153,7 +166,6 @@ export class GameEngine implements IGame {
                     };
                     const field_bonus = this.state.field[letter.located.position.y][letter.located.position.x];
 
-                    console.log('---field_bonus-------', field_bonus, letter.value, letter.price);
                     if (field_bonus) {
                         switch (field_bonus) {
                             case "w3": word_multiplier += 3;
@@ -216,7 +228,7 @@ export class GameEngine implements IGame {
     }
 
     public join(user: ISpectator | IPlayer) {
-        if (user.role === "spectator") {
+        if (user.role === ROLES.SPECTATOR) {
             this.state.spectators.push(user);
         } else {
             this.state.players[user.id] = user;

@@ -2,17 +2,14 @@ import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { h32 } from 'xxhashjs';
 import { DndContext, MouseSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
-import type { IProps as ICellProps } from '../components/Cell/view';
-import Sidebar from '../components/Sidebar';
-import Field from '../components/Field';
-import DroppableCell from '../components/DroppableCell';
-import DraggableLetter from '../components/DraggableLetter';
-import schema from './schema.json';
-import styles from './gameStyles.scss';
-
-import data from './data.json';
-
-const { letters }: { letters: string[] } = (data as any).players[data.active_player];
+import type { IProps as ICellProps } from '../../components/Cell/view';
+import type {IGameState, UserId} from '../../../types';
+import Sidebar from '../../components/Sidebar';
+import Field from '../../components/Field';
+import DroppableCell from '../../components/DroppableCell';
+import DraggableLetter from '../../components/DraggableLetter';
+import schema from '../schema.json';
+import Button from '../../components/Button';
 
 const FIELD_POSITION_START_X = 59;
 const FIELD_POSITION_START_Y = 9;
@@ -24,15 +21,24 @@ const LETTER_WIDTH = 40;
 
 const calculatePosition = (start: number, offset: number) => start + LETTER_WIDTH * offset + offset;
 
-function GamePage() {
+export interface IProps {
+	classes: Record<string, string>;
+    game: IGameState | null;
+	userId: UserId;
+    onCreateGame: () => void;
+}
+
+
+function GamePage({game, onCreateGame, userId, classes}: IProps) {
 	const [fieldLetters, setFieldLetters] = React.useState<string>('{}');
 	const [selectedLetters, setSelectedLetters] = React.useState<string[]>([]);
-
 	const mouseSensor = useSensor(MouseSensor, {
 		activationConstraint: {
 			distance: 10,
 		},
 	});
+
+	const letters = game?.players[userId].letters;
 
 	const toogleSelected = React.useCallback(
 		(id: string) => {
@@ -154,7 +160,7 @@ function GamePage() {
 				return JSON.stringify(parsedState);
 			});
 		} else {
-			// set letter to it's initial position
+			// set letter on it's initial position
 			const { initialPosition } = active.data.current as any;
 
 			moveLetterBackTo(letterId, initialPosition);
@@ -165,8 +171,8 @@ function GamePage() {
 		const droppedLetters = JSON.parse(fieldLetters);
 
 		return (
-			<div className={styles.lettersContainer}>
-				{letters.map((letterId, i) => {
+			<div className={classes.lettersContainer}>
+				{letters?.map((letterId, i) => {
 					const droppedLetterPosition = droppedLetters[letterId]?.position;
 					const posLeft = calculatePosition(LETTERS_POSITION_START_X, i);
 
@@ -196,8 +202,12 @@ function GamePage() {
 
 	const droppedLetters = JSON.parse(fieldLetters);
 
-	return (
-		<div className={styles.game}>
+	if (!game) {
+		return null;
+	}
+
+	return [
+		<div className={classes.game}>
 			<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={useSensors(mouseSensor)}>
 				<Field>
 					{(schema as ICellProps['bonus'][][]).map((row, index) => (
@@ -230,8 +240,14 @@ function GamePage() {
 				<Sidebar />
 				{createPortal(lettersContent, document.body)}
 			</DndContext>
-		</div>
-	);
+		</div>,
+        // this is for debug only
+		<Button
+		onClick={onCreateGame}
+		>
+		New game
+		</Button>
+	]
 }
 
 GamePage.displayName = 'GamePage';

@@ -1,24 +1,4 @@
-export type LetterId = string;
-
-export interface Letters {
-    [id: LetterId]: {
-        value: string,
-        price: number;
-        located: {
-            in: "player"
-        }
-        | {
-            in: "field",
-            position: {
-                x: number;
-                y: number;
-            }
-        }
-        | {
-            in: "stock"
-        }
-    }
-};
+import type { LetterId, Letters } from '../../types';
 
 export interface ILetterConfig {
     name: string;
@@ -66,7 +46,7 @@ export class LettersService implements ILettersService {
         return letters;
     }
 
-    public getLetters () {
+    public getLetters() {
         return this.state;
     }
 

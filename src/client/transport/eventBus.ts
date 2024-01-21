@@ -12,14 +12,14 @@ export class EventBus {
     private session_id?: string;
 
     constructor() {
-        this.session_id = this.initSessionId();
-        // @TODO: add connection url from config
-        this.socket = io("ws://127.0.0.1:8090", {
-            autoConnect: false,
-            extraHeaders: {
-                'X-Session-Id': this.session_id
-            }
-        })
+        // this.session_id = this.initSessionId();
+        // // @TODO: add connection url from config
+        // this.socket = io("ws://127.0.0.1:8090", {
+        //     autoConnect: false,
+        //     extraHeaders: {
+        //         'X-Session-Id': this.session_id
+        //     }
+        // })
     };
 
     private initSessionId() {
@@ -34,6 +34,14 @@ export class EventBus {
     }
 
     public connect() {
+        this.session_id = this.initSessionId();
+        // @TODO: add connection url from config
+        this.socket = io("ws://127.0.0.1:8090", {
+            autoConnect: false,
+            extraHeaders: {
+                'X-Session-Id': this.session_id
+            }
+        })
         this.socket?.connect();
     }
 

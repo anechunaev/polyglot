@@ -8,7 +8,7 @@ import middlewareHandler404 from './middlewares/handler404';
 import errorRequestHandler from './middlewares/errorRequestHandler';
 import healthcheck from './middlewares/healthcheck';
 import { enableGracefulShutdown } from './modules/gracefulShutdown';
-import { GameManager } from './services/GameManager';
+import { Controller } from './controller';
 
 const app = Express();
 
@@ -39,7 +39,7 @@ const io = new Server(8090, {
 const server = app.listen(env.port, env.host, function onAppStart() {
 	console.log(`Server @ http://${env.host}:${env.port}`);
 
-	new GameManager(io);
+	new Controller(io);
 
 	console.log("Game server was started");
 });

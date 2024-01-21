@@ -1,27 +1,23 @@
 import * as React from 'react';
 import NoSSR from './components/NoSSR';
-import Greetings from './components/Greetings';
-import GameList from './components/GameList';
+import EventBusContext from './eventBusProvider';
 
 import GamePage from './pages/Game';
 
 function App() {
 	return (
 		<React.StrictMode>
-			<Greetings />
 			<NoSSR>
-				<GameList />
+				<EventBusContext.Consumer>
+					{eventBus => {
+						eventBus.connect();
+
+						return <GamePage eventBus={eventBus} />
+					}}
+				</EventBusContext.Consumer>
 			</NoSSR>
 		</React.StrictMode>
 	);
-
-	// return (
-	// 	<React.StrictMode>
-	// 		<NoSSR>
-	// 			<GamePage />
-	// 		</NoSSR>
-	// 	</React.StrictMode>
-	// );
 }
 
 export default App;

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { deepMerge, mergeObjectStyles } from '../../../lib';
+import { deepMerge, mergeObjectStyles } from '../../helpers';
 
 export interface IWithStylesProps {
 	classes: Record<string, string>;

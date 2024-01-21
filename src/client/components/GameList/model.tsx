@@ -1,6 +1,6 @@
 import * as React from 'react';
 import type { IProps as IViewProps } from './view';
-import { EventBus } from '../../services/eventBus';
+import { EventBus } from '../../transport/eventBus';
 import { EVENTS } from '../../../constants';
 
 export interface IProps { }
@@ -29,12 +29,12 @@ function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProp
 
         eventBus.connect();
 
-        eventBus.on(EVENTS.CREATE_GAME, (payload: any) => {
-            // eslint-disable-next-line no-console
-            updateGameId(payload.gameId);
-            updateGameState({...payload.game});
-            console.log('New game was created with state', payload);
-        });
+        // eventBus.on(EVENTS.CREATE_GAME, (payload: any) => {
+        //     // eslint-disable-next-line no-console
+        //     updateGameId(payload.gameId);
+        //     updateGameState({...payload.game});
+        //     console.log('New game was created with state', payload);
+        // });
 
         eventBus.on(EVENTS.UPDATE_GAME_LIST, (payload: string[]) => {
             updateGameList(() => payload);
@@ -52,18 +52,18 @@ function Model(View: React.ComponentType<IViewProps>): React.ComponentType<IProp
             eventBus.emit(EVENTS.GAME_START, { gameId });
         }, [eventBus]);
 
-        const onCreateGame = React.useCallback(() => {
-            eventBus.emit(EVENTS.CREATE_GAME, {
-                game: {
-                    settings: {
-                        max_players: 2
-                    },
-                    player: {
-                        name: "jpig"
-                    }
-                }
-            });
-        }, [eventBus]);
+        // const onCreateGame = React.useCallback(() => {
+        //     eventBus.emit(EVENTS.CREATE_GAME, {
+        //         game: {
+        //             settings: {
+        //                 max_players: 2
+        //             },
+        //             player: {
+        //                 name: "jpig"
+        //             }
+        //         }
+        //     });
+        // }, [eventBus]);
 
         const onNextTurn = React.useCallback((gameId: string, playerId: string) => {
             eventBus.emit(EVENTS.ON_NEXT_TURN, {

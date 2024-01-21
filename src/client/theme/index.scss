@@ -1,7 +1,6 @@
 @import './mixins.scss';
 
 $step: 4px;
-$borderRadius: 5px;
 
 :global {
 	.default-focusable {
@@ -10,4 +9,25 @@ $borderRadius: 5px;
 			outline: none;
 		}
 	}
+	.default-focusable-invalid {
+		&:focus {
+			box-shadow: 0 0 0 4px #D31D1D26;
+		}
+	}
+
+	.focused {
+		box-shadow: 0 0 0 4px #0075D226;
+		outline: none;
+	}
+
+	.invalid {
+		box-shadow: 0 0 0 4px #D31D1D26;
+	}
+}
+
+:root {
+	--gap: 5px;
+	--border-radius: 5px;
+
+	--padding-horizontal-text-field: 10px;
 }

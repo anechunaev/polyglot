@@ -1,4 +1,5 @@
 import type { IRroles } from '../types';
+
 export const PLAYER_MAX_LETTERS_CAPACITY = 7;
 export const DEFAULT_FIELD_SIZE = {
     x: 15,

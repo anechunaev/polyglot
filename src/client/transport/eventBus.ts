@@ -43,7 +43,11 @@ export class EventBus {
             }
         })
         this.socket?.connect();
+
+        console.log('---SOCKET WAS CONNECTED----', this.session_id);
     }
+
+
 
     public on(eventName: string, listener: any) {
         this.socket?.on(eventName, listener);

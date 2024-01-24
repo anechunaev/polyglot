@@ -6,17 +6,15 @@ import GamePage from './pages/Game';
 
 function App() {
 	return (
-		<React.StrictMode>
 			<NoSSR>
 				<EventBusContext.Consumer>
 					{eventBus => {
 						eventBus.connect();
 
-						return <GamePage eventBus={eventBus} />
+						return <NoSSR><GamePage eventBus={eventBus} /></NoSSR>
 					}}
 				</EventBusContext.Consumer>
 			</NoSSR>
-		</React.StrictMode>
 	);
 }
 

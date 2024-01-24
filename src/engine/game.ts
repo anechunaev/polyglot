@@ -84,6 +84,7 @@ export class GameEngine implements IGame {
     public emit: Emit;
 
     constructor(emit: Emit, id: GameId, settings: IGameSettings, user: IUser) {
+        console.log('--settings---',)
         const timer = new Timer(settings.timer || DEFAULT_TIMER_VALUE_SEC, this.onTimerTick, this.onTimerEnd);
         const letters = new LettersService(letterConfig);
 

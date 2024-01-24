@@ -15,7 +15,7 @@ export class LettersService implements ILettersService {
     private state: Letters;
 
     constructor(config: ILetterConfig[]) {
-        this.state = this.initState([...config]);
+        this.state = this.initState(config);
     }
 
     private initState(config: ILetterConfig[]) {
@@ -58,11 +58,16 @@ export class LettersService implements ILettersService {
 
     public getRandomLetters(count: number) {
         const res: LetterId[] = [];
-        const letters = Object.keys(this.state).filter(letterId => this.state[letterId].located.in === "stock");
-
         while (count) {
+            const letters = Object.keys(this.state).filter(letterId => {
+                console.log('---this.state[letterId]------', this.state[letterId]);
+
+                return this.state[letterId].located.in === "stock";
+            });
+    
             const letterId = letters[Math.floor((Math.random() * letters.length))];
             const letter = this.state[letterId];
+            
             letter.located.in = "player";
 
             this.state[letterId] = letter;

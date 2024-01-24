@@ -93,9 +93,11 @@ export class Controller {
 
             ws.on(EVENTS.CREATE_GAME, (payload: ICreateGamePayload) => {
                 const { game, gameId } = this.createGame(payload.sessionId, payload);
-
+                const json = JSON.stringify(game.getState());
+                
+                console.log('---SERVER LETTERS-----', Buffer.byteLength(JSON.stringify(json)))
                 this.emitAll(EVENTS.UPDATE_GAME_LIST, this.gameIds);
-                ws.emit(EVENTS.CREATE_GAME, { gameId, game: game.getState() });
+                ws.emit(EVENTS.CREATE_GAME, JSON.stringify({ gameId, game:  game.getState()}));
             });
 
             ws.on(EVENTS.JOIN_GAME, (payload: IJoinGamePayload) => {

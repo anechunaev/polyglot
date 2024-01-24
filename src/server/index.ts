@@ -36,7 +36,7 @@ const io = new Server(8090, {
 	}
 });
 
-const server = app.listen(env.port, env.host, function onAppStart() {
+const server = app.listen(env.port, env.host, () => {
 	console.log(`Server @ http://${env.host}:${env.port}`);
 
 	new Controller(io);

@@ -18,30 +18,39 @@ function Model(View: React.ComponentType<Omit<IViewProps, "classes">>): React.Co
             eventBus.emit(EVENTS.GET_CURRENT_USER);
         }, []);
 
-        eventBus.on(EVENTS.CREATE_GAME, (payload: any) => {
+        eventBus.on(EVENTS.CREATE_GAME, React.useCallback((payload: any) => {
             // eslint-disable-next-line no-console
-            updateGameId(payload.gameId);
-            updateGameState({...payload.game});
-            console.log('New game was created with state', payload);
-        });
 
-        eventBus.on(EVENTS.GET_CURRENT_USER, (payload: IUser) => {
+            const data = JSON.parse(payload);
+            updateGameId(data.gameId);
+
+            updateGameState(() => ({...data.game}));
+
+            console.log('New game was created with state', data);
+        }, [gameState]));
+
+        eventBus.on(EVENTS.GET_CURRENT_USER, React.useCallback((payload: IUser) => {
             // @TODO: need to check it
             console.log('---------CLIENT GOT USER INFO------', payload);
-            setUser(payload);
-        });
+            setUser(() => (payload));
+        }, [user]));
 
         const onCreateGame = () => {
             eventBus.emit(EVENTS.CREATE_GAME, {
-                game: {
-                    settings: {
-                        max_players: 2
-                    },
-                    user
-                }
+                settings: {
+                    max_players: 2
+                },
+                user
             });
         }
 
+        console.log('---RERENDER without user ---')
+
+        if (!user) {
+            return null;
+        }
+
+        console.log('---RERENDER ---')
         return <View game={gameState} userId={user!.id} onCreateGame={onCreateGame} />
     }
 

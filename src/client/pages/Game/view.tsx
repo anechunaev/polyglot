@@ -32,13 +32,14 @@ export interface IProps {
 function GamePage({game, onCreateGame, userId, classes}: IProps) {
 	const [fieldLetters, setFieldLetters] = React.useState<string>('{}');
 	const [selectedLetters, setSelectedLetters] = React.useState<string[]>([]);
+
 	const mouseSensor = useSensor(MouseSensor, {
 		activationConstraint: {
 			distance: 10,
 		},
 	});
 
-	const letters = game?.players[userId].letters;
+	const sensors = useSensors(mouseSensor);
 
 	const toogleSelected = React.useCallback(
 		(id: string) => {
@@ -169,6 +170,9 @@ function GamePage({game, onCreateGame, userId, classes}: IProps) {
 
 	const lettersContent = React.useMemo(() => {
 		const droppedLetters = JSON.parse(fieldLetters);
+		const letters = game?.players[userId].letters;
+
+		console.log('----lettersContent letters-----------', letters);
 
 		return (
 			<div className={classes.lettersContainer}>
@@ -198,17 +202,28 @@ function GamePage({game, onCreateGame, userId, classes}: IProps) {
 				})}
 			</div>
 		);
-	}, [fieldLetters, selectedLetters, handleRightClick, moveLetterBackTo, toogleSelected]);
+	}, [fieldLetters, game, selectedLetters, userId, handleRightClick, moveLetterBackTo, toogleSelected]);
 
 	const droppedLetters = JSON.parse(fieldLetters);
 
 	if (!game) {
-		return null;
+		return (
+			 // [DEBUG] this is for debug only
+			 <div className={classes.newGameContainer}>
+				<Button
+					onClick={onCreateGame}
+				>
+					New game
+				</Button>
+			 </div>
+		);
 	}
 
-	return [
+	console.log('---render view----');
+
+	return (
 		<div className={classes.game}>
-			<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={useSensors(mouseSensor)}>
+			<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={sensors}>
 				<Field>
 					{(schema as ICellProps['bonus'][][]).map((row, index) => (
 						<div
@@ -240,14 +255,8 @@ function GamePage({game, onCreateGame, userId, classes}: IProps) {
 				<Sidebar />
 				{createPortal(lettersContent, document.body)}
 			</DndContext>
-		</div>,
-        // this is for debug only
-		<Button
-		onClick={onCreateGame}
-		>
-		New game
-		</Button>
-	]
+		</div>
+	)
 }
 
 GamePage.displayName = 'GamePage';

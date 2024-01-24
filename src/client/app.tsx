@@ -6,15 +6,15 @@ import GamePage from './pages/Game';
 
 function App() {
 	return (
-			<NoSSR>
-				<EventBusContext.Consumer>
-					{eventBus => {
+		<NoSSR>
+			<EventBusContext.Consumer>
+				{eventBus => {
 						eventBus.connect();
 
 						return <NoSSR><GamePage eventBus={eventBus} /></NoSSR>
 					}}
-				</EventBusContext.Consumer>
-			</NoSSR>
+			</EventBusContext.Consumer>
+		</NoSSR>
 	);
 }
 

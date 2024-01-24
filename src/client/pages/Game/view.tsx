@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { h32 } from 'xxhashjs';
 import { DndContext, MouseSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import type { IProps as ICellProps } from '../../components/Cell/view';
-import type {IGameState, UserId} from '../../../types';
+import type { IGameState, UserId } from '../../../types';
 import Sidebar from '../../components/Sidebar';
 import Field from '../../components/Field';
 import DroppableCell from '../../components/DroppableCell';
@@ -23,13 +23,12 @@ const calculatePosition = (start: number, offset: number) => start + LETTER_WIDT
 
 export interface IProps {
 	classes: Record<string, string>;
-    game: IGameState | null;
+	game: IGameState | null;
 	userId: UserId;
-    onCreateGame: () => void;
+	onCreateGame: () => void;
 }
 
-
-function GamePage({game, onCreateGame, userId, classes}: IProps) {
+function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 	const [fieldLetters, setFieldLetters] = React.useState<string>('{}');
 	const [selectedLetters, setSelectedLetters] = React.useState<string[]>([]);
 
@@ -172,8 +171,6 @@ function GamePage({game, onCreateGame, userId, classes}: IProps) {
 		const droppedLetters = JSON.parse(fieldLetters);
 		const letters = game?.players[userId].letters;
 
-		console.log('----lettersContent letters-----------', letters);
-
 		return (
 			<div className={classes.lettersContainer}>
 				{letters?.map((letterId, i) => {
@@ -202,24 +199,27 @@ function GamePage({game, onCreateGame, userId, classes}: IProps) {
 				})}
 			</div>
 		);
-	}, [fieldLetters, game, selectedLetters, userId, handleRightClick, moveLetterBackTo, toogleSelected]);
+	}, [
+		fieldLetters,
+		game,
+		classes.lettersContainer,
+		selectedLetters,
+		userId,
+		handleRightClick,
+		moveLetterBackTo,
+		toogleSelected,
+	]);
 
 	const droppedLetters = JSON.parse(fieldLetters);
 
 	if (!game) {
 		return (
-			 // [DEBUG] this is for debug only
-			 <div className={classes.newGameContainer}>
-				<Button
-					onClick={onCreateGame}
-				>
-					New game
-				</Button>
-			 </div>
+			// [DEBUG] this is for debug only
+			<div className={classes.newGameContainer}>
+				<Button onClick={onCreateGame}>New game</Button>
+			</div>
 		);
 	}
-
-	console.log('---render view----');
 
 	return (
 		<div className={classes.game}>
@@ -256,7 +256,7 @@ function GamePage({game, onCreateGame, userId, classes}: IProps) {
 				{createPortal(lettersContent, document.body)}
 			</DndContext>
 		</div>
-	)
+	);
 }
 
 GamePage.displayName = 'GamePage';

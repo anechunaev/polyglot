@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { h32 } from 'xxhashjs';
 import { DndContext, MouseSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import type { IProps as ICellProps } from '../../components/Cell/view';
-import type { IGameState, UserId } from '../../../types';
+import type { IGameState, UserId, LetterId } from '../../../types';
 import Sidebar from '../../components/Sidebar';
 import Field from '../../components/Field';
 import DroppableCell from '../../components/DroppableCell';
@@ -29,8 +29,9 @@ export interface IProps {
 }
 
 function GamePage({ game, onCreateGame, userId, classes }: IProps) {
-	const [fieldLetters, setFieldLetters] = React.useState<string>('{}');
+	const [droppedLetters, dropLetters] = React.useState<Record<string, any>>({});
 	const [selectedLetters, setSelectedLetters] = React.useState<string[]>([]);
+	// const [letters, setLetters] = React.useState(game?.letters);
 
 	const mouseSensor = useSensor(MouseSensor, {
 		activationConstraint: {
@@ -42,9 +43,8 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 
 	const toogleSelected = React.useCallback(
 		(id: string) => {
-			const droppedLetters = JSON.parse(fieldLetters);
 			// the letter is not on the field
-			if (!droppedLetters[id]?.parent) {
+			if (!droppedLetters[id]?.fieldCell) {
 				setSelectedLetters((state) => {
 					const indexOf = state.indexOf(id);
 
@@ -58,7 +58,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 				});
 			}
 		},
-		[fieldLetters],
+		[droppedLetters],
 	);
 
 	const handleDragStart = ({ active }: DragStartEvent) => {
@@ -76,38 +76,36 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 
 	const moveLetterBackTo = React.useCallback(
 		(id: string, initialPosition: { x: number; y: number }) => {
-			const droppedLetters = JSON.parse(fieldLetters);
 
-			if (droppedLetters[id]?.parent) {
-				setFieldLetters(() => {
-					droppedLetters[id] = {
-						parent: null,
+			if (droppedLetters[id]?.fieldCell) {
+				dropLetters((state) => {
+					const newState = { ...state }
+					newState[id] = {
+						fieldCell: null,
 						position: {
 							top: initialPosition.y,
 							left: initialPosition.x,
 						},
 					};
 
-					return JSON.stringify(droppedLetters);
+					return newState;
 				});
 			}
 		},
-		[fieldLetters],
+		[droppedLetters],
 	);
 
 	const handleRightClick = React.useCallback(
 		(id: string, initialPosition: { x: number; y: number }, e: React.SyntheticEvent) => {
 			e.preventDefault();
 
-			const droppedLetters = JSON.parse(fieldLetters);
-
-			if (droppedLetters[id]?.parent) {
+			if (droppedLetters[id]?.fieldCell) {
 				moveLetterBackTo(id, initialPosition);
 			} else {
 				toogleSelected(id);
 			}
 		},
-		[fieldLetters, moveLetterBackTo, toogleSelected],
+		[droppedLetters, moveLetterBackTo, toogleSelected],
 	);
 
 	const onCellClick = React.useCallback(
@@ -115,17 +113,17 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 			if (selectedLetters.length) {
 				const letterId = selectedLetters[0];
 
-				setFieldLetters((state) => {
-					const parsedState = JSON.parse(state);
-					parsedState[letterId] = {
-						parent: id,
+				dropLetters((state) => {
+					const newState = { ...state };
+					newState[letterId] = {
+						fieldCell: id,
 						position: {
 							top: calculatePosition(FIELD_POSITION_START_Y, pos.y),
 							left: calculatePosition(FIELD_POSITION_START_X, pos.x),
 						},
 					};
 
-					return JSON.stringify(parsedState);
+					return newState;
 				});
 
 				const indexOf = selectedLetters.indexOf(letterId.toString());
@@ -147,20 +145,19 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		if (over) {
 			const { position } = over.data.current as any;
 
-			setFieldLetters((state) => {
-				const parsedState = JSON.parse(state);
-				parsedState[letterId] = {
-					parent: over.id,
+			dropLetters((state) => {
+				const newState = { ...state };
+				newState[letterId] = {
+					fieldCell: over.id,
 					position: {
 						top: calculatePosition(FIELD_POSITION_START_Y, position.y),
 						left: calculatePosition(FIELD_POSITION_START_X, position.x),
 					},
 				};
 
-				return JSON.stringify(parsedState);
+				return newState;
 			});
 		} else {
-			// set letter on it's initial position
 			const { initialPosition } = active.data.current as any;
 
 			moveLetterBackTo(letterId, initialPosition);
@@ -168,7 +165,6 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 	};
 
 	const lettersContent = React.useMemo(() => {
-		const droppedLetters = JSON.parse(fieldLetters);
 		const letters = game?.players[userId].letters;
 
 		return (
@@ -200,7 +196,8 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 			</div>
 		);
 	}, [
-		fieldLetters,
+		dropLetters,
+		droppedLetters,
 		game,
 		classes.lettersContainer,
 		selectedLetters,
@@ -210,7 +207,21 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		toogleSelected,
 	]);
 
-	const droppedLetters = JSON.parse(fieldLetters);
+	const lettersPosition = Object.keys(game?.letters || {}).reduce<Record<string, LetterId>>((acc: any, letterId) => {
+		const letter = game?.letters[letterId];
+
+		if (letter?.located.in === 'field') {
+			const { position } = letter.located;
+
+			acc[`${position.x};${position.y}`] = letterId;
+		}
+
+		return acc;
+	}, {});
+
+	const makeNewWords = (letter: {}) => {
+
+	}
 
 	if (!game) {
 		return (
@@ -240,7 +251,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 									<DroppableCell
 										id={id}
 										disabled={Object.values(droppedLetters)?.some(
-											(letter) => (letter as any)?.parent === id,
+											(letter) => (letter as any)?.fieldCell === id,
 										)}
 										position={position}
 										key={h32(`${(bonus || '') + id}dr-cell`, 0xabcd).toString()}

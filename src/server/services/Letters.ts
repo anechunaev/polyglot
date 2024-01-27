@@ -52,7 +52,6 @@ export class LettersService implements ILettersService {
 		const res: LetterId[] = [];
 		while (lettersCount) {
 			const letters = Object.keys(this.state).filter((letterId) => this.state[letterId].located.in === 'stock');
-
 			const letterId = letters[Math.floor(Math.random() * letters.length)];
 			const letter = this.state[letterId];
 			letter.located.in = 'player';

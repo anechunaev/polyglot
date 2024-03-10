@@ -1,9 +1,4 @@
-export interface Size {
-	x: number;
-	y: number;
-}
-
-export type Field = (string | null)[][];
+import type { Field } from '../../types';
 
 // @TODO: write an algorythm for dynamic creating field schema
 export const generateFieldSchema = (): Field => [

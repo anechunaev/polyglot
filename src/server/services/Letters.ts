@@ -1,95 +1,66 @@
-export type LetterId = string;
-
-export interface Letters {
-    [id: LetterId]: {
-        value: string,
-        price: number;
-        located: {
-            in: "player"
-        }
-        | {
-            in: "field",
-            position: {
-                x: number;
-                y: number;
-            }
-        }
-        | {
-            in: "stock"
-        }
-    }
-};
+import type { LetterId, Letters } from '../../types';
 
 export interface ILetterConfig {
-    name: string;
-    count: number;
-    price: number;
+	name: string;
+	count: number;
+	price: number;
 }
 
 export interface ILettersService {
-    getLetters: () => Letters;
-    getRandomLetters: (count: number) => LetterId[];
+	getLetters: () => Letters;
+	getRandomLetters: (count: number) => LetterId[];
 }
 
 export class LettersService implements ILettersService {
-    private state: Letters;
+	private state: Letters;
 
-    constructor(config: ILetterConfig[]) {
-        this.state = this.initState([...config]);
-    }
+	constructor(config: ILetterConfig[]) {
+		let copiedConfig = [...config];
 
-    private initState(config: ILetterConfig[]) {
-        const letters: Letters = {};
-        let index = 0;
+		const letters: Letters = {};
+		let index = 0;
 
-        while (config.length) {
-            const letter = config.shift() as ILetterConfig;
+		while (copiedConfig.length) {
+			const letter = copiedConfig.shift() as ILetterConfig;
 
-            letters[index] = {
-                value: letter.name,
-                price: letter.price,
-                located: {
-                    in: "stock"
-                }
+			letters[index] = {
+				value: letter.name,
+				price: letter.price,
+				located: {
+					in: 'stock',
+				},
+			};
 
-            }
+			index++;
 
-            index++;
+			--letter.count;
 
-            --letter.count;
+			if (letter.count > 0) {
+				copiedConfig = [letter, ...copiedConfig];
+			}
+		}
 
-            if (letter.count > 0) {
-                config = [letter, ...config];
-            }
-        }
+		this.state = letters;
+	}
 
-        return letters;
-    }
+	public getLetters() {
+		return this.state;
+	}
 
-    public getLetters () {
-        return this.state;
-    }
+	public getRandomLetters(count: number) {
+		let lettersCount = count;
+		const res: LetterId[] = [];
+		while (lettersCount) {
+			const letters = Object.keys(this.state).filter((letterId) => this.state[letterId].located.in === 'stock');
+			const letterId = letters[Math.floor(Math.random() * letters.length)];
+			const letter = this.state[letterId];
+			letter.located.in = 'player';
 
-    public update(newLetters: Letters) {
-        Object.keys(newLetters).forEach(letterId => {
-            this.state[letterId] = newLetters[letterId];
-        });
-    }
+			this.state[letterId] = letter;
+			res.push(letterId);
+			--lettersCount;
+		}
 
-    public getRandomLetters(count: number) {
-        const res: LetterId[] = [];
-        const letters = Object.keys(this.state).filter(letterId => this.state[letterId].located.in === "stock");
-
-        while (count) {
-            const letterId = letters[Math.floor((Math.random() * letters.length))];
-            const letter = this.state[letterId];
-            letter.located.in = "player";
-
-            this.state[letterId] = letter;
-            res.push(letterId);
-            --count;
-        }
-
-        return res;
-    }
+		return res;
+	}
 }

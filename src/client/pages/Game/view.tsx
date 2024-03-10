@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { h32 } from 'xxhashjs';
 import { DndContext, MouseSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import type { IProps as ICellProps } from '../../components/Cell/view';
-import type { IGameState, UserId, LetterId } from '../../../types';
+import type { IGameState, UserId } from '../../../types';
 import Sidebar from '../../components/Sidebar';
 import Field from '../../components/Field';
 import DroppableCell from '../../components/DroppableCell';
@@ -29,6 +29,7 @@ export interface IProps {
 }
 
 function GamePage({ game, onCreateGame, userId, classes }: IProps) {
+	// dropped letters on the field
 	const [droppedLetters, dropLetters] = React.useState<Record<string, any>>({});
 	const [selectedLetters, setSelectedLetters] = React.useState<string[]>([]);
 	// const [letters, setLetters] = React.useState(game?.letters);
@@ -40,6 +41,19 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 	});
 
 	const sensors = useSensors(mouseSensor);
+
+	// const makeNewWords = (letter: {}) => {
+	// 	console.log(letter)
+	// 	// what do we suppose to do when player wants to make few words during his turn?
+
+	// 	// start checking words
+	// 		// vertical checking
+	// 			// check top
+	// 			// check bottom
+	// 		// horizontal checking
+	// 			// check left
+	// 			// check right
+	// }
 
 	const toogleSelected = React.useCallback(
 		(id: string) => {
@@ -76,10 +90,9 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 
 	const moveLetterBackTo = React.useCallback(
 		(id: string, initialPosition: { x: number; y: number }) => {
-
 			if (droppedLetters[id]?.fieldCell) {
 				dropLetters((state) => {
-					const newState = { ...state }
+					const newState = { ...state };
 					newState[id] = {
 						fieldCell: null,
 						position: {
@@ -142,8 +155,15 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 	const handleDragEnd = ({ over, active }: DragEndEvent) => {
 		const letterId = active.id as string;
 
+		const letter = game!.letters[letterId];
+
 		if (over) {
 			const { position } = over.data.current as any;
+
+			letter.located = {
+				in: 'field',
+				position,
+			};
 
 			dropLetters((state) => {
 				const newState = { ...state };
@@ -157,19 +177,23 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 
 				return newState;
 			});
+
+			// makeNewWords();
 		} else {
 			const { initialPosition } = active.data.current as any;
-
+			letter.located.in = 'player';
 			moveLetterBackTo(letterId, initialPosition);
 		}
+
+		// setLetters(state => ({...state, [letterId]: letter}));
 	};
 
 	const lettersContent = React.useMemo(() => {
-		const letters = game?.players[userId].letters;
+		const playerLetters = game?.players[userId].letters;
 
 		return (
 			<div className={classes.lettersContainer}>
-				{letters?.map((letterId, i) => {
+				{playerLetters?.map((letterId, i) => {
 					const droppedLetterPosition = droppedLetters[letterId]?.position;
 					const posLeft = calculatePosition(LETTERS_POSITION_START_X, i);
 
@@ -196,7 +220,6 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 			</div>
 		);
 	}, [
-		dropLetters,
 		droppedLetters,
 		game,
 		classes.lettersContainer,
@@ -207,21 +230,17 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		toogleSelected,
 	]);
 
-	const lettersPosition = Object.keys(game?.letters || {}).reduce<Record<string, LetterId>>((acc: any, letterId) => {
-		const letter = game?.letters[letterId];
+	// const lettersPosition = Object.keys(letters || {}).reduce<Record<string, LetterId>>((acc: any, letterId) => {
+	// 	const letter = letters?.[letterId];
 
-		if (letter?.located.in === 'field') {
-			const { position } = letter.located;
+	// 	if (letter?.located.in === 'field') {
+	// 		const { position } = letter.located;
 
-			acc[`${position.x};${position.y}`] = letterId;
-		}
+	// 		acc[`${position.x};${position.y}`] = letterId;
+	// 	}
 
-		return acc;
-	}, {});
-
-	const makeNewWords = (letter: {}) => {
-
-	}
+	// 	return acc;
+	// }, {});
 
 	if (!game) {
 		return (

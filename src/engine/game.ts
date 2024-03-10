@@ -48,12 +48,18 @@ export interface IState {
 }
 
 export interface IWord {
-	letters: LetterId[];
-	position: {
-		x: number;
-		y: number;
+	[position: string]: {
+		letterIds: LetterId[];
+		type: 'vertical' | 'horizontal';
+		score?: number;
 	};
-	type: 'vertical' | 'horizontal';
+	// letters: LetterId[];
+	// position: {
+	// 	x: number;
+	// 	y: number;
+	// };
+	// type: 'vertical' | 'horizontal';
+	// score?: number;
 }
 
 export interface IGame {

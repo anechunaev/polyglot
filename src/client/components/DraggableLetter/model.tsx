@@ -8,6 +8,8 @@ export type SyntheticListenerMap = Record<string, Function>;
 
 export interface IProps {
 	styles: Record<string, string | number>;
+	disabled?: boolean;
+	letters: any; // вынести в редакс
 	initialPosition: {
 		x: number;
 		y: number;
@@ -20,6 +22,7 @@ function Model(
 	function DraggabaleLetterModel(props: ILetterProps & IProps) {
 		const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
 			id: props.letterId || '',
+			disabled: props.disabled,
 			data: {
 				initialPosition: props.initialPosition,
 			},

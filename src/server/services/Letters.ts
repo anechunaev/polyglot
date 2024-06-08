@@ -15,10 +15,11 @@ export class LettersService implements ILettersService {
 	private state: Letters;
 
 	constructor(config: ILetterConfig[]) {
-		let copiedConfig = [...config];
-
+		let copiedConfig = JSON.parse(JSON.stringify(config))
 		const letters: Letters = {};
 		let index = 0;
+
+		console.log('...copiedConfig......', copiedConfig);
 
 		while (copiedConfig.length) {
 			const letter = copiedConfig.shift() as ILetterConfig;

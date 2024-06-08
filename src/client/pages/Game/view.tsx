@@ -8,6 +8,7 @@ import Sidebar from '../../components/Sidebar';
 import Field from '../../components/Field';
 import DroppableCell from '../../components/DroppableCell';
 import DraggableLetter from '../../components/DraggableLetter';
+import Letter from '../../components/Letter';
 import schema from '../schema.json';
 import Button from '../../components/Button';
 
@@ -188,8 +189,32 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		// setLetters(state => ({...state, [letterId]: letter}));
 	};
 
-	const lettersContent = React.useMemo(() => {
+	const renderFieldLetters = React.useMemo(() => {
+		const fieldLetters = Object.keys((game?.letters || [])).filter(letterId => game?.letters[letterId].located.in === 'field');
+
+		return (
+			<div>
+				{fieldLetters?.map((letterId, i) => {
+					const letter = game?.letters[letterId] as unknown as any;
+					return (
+						<Letter
+							key={h32(letterId, 0xabcd).toString()}
+							letters={game?.letters}
+							position={{
+								top: calculatePosition(FIELD_POSITION_START_Y, letter.located.position.y),
+								left: calculatePosition(FIELD_POSITION_START_X, letter.located.position.x),
+							}}
+							letterId={letterId}
+						/>
+					);
+				})}
+			</div>
+		);
+	}, [game])
+
+	const renderPlayerLetters = React.useMemo(() => {
 		const playerLetters = game?.players[userId].letters;
+
 
 		return (
 			<div className={classes.lettersContainer}>
@@ -209,6 +234,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 								left: droppedLetterPosition ? droppedLetterPosition.left : posLeft,
 							}}
 							initialPosition={initialPosition}
+							letters={game?.letters}
 							isSelected={selectedLetters.includes(letterId)}
 							letterId={letterId}
 							onClick={() => toogleSelected(letterId)}
@@ -283,7 +309,8 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 					))}
 				</Field>
 				<Sidebar />
-				{createPortal(lettersContent, document.body)}
+				{createPortal(renderPlayerLetters, document.body)}
+				{createPortal(renderFieldLetters, document.body)}
 			</DndContext>
 		</div>
 	);

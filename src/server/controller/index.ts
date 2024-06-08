@@ -1,9 +1,9 @@
 import { Server, Socket } from 'socket.io';
-import uuid4 from 'uuid4';
-import type { UserId, GameId, IPlayer, ISpectator, IUser } from '../../types';
-import type { IGameSettings, IGame, IWord } from '../../engine/game';
-import { EVENTS } from '../../constants';
+import type { UserId, GameId, IPlayer, ISpectator, IUser, IWord } from '../../types';
+import type { IGameSettings, IGame } from '../../engine/game';
+import { EVENTS, DEFAULT_TIMER_VALUE_SEC, DEFAULT_MAX_SCORE_VALUE } from '../../constants';
 import { GameEngine } from '../../engine/game';
+import { Dictionary } from '../services/dictionary';
 
 export type ClientId = string;
 export type SessionId = string;
@@ -52,8 +52,10 @@ export interface Sessions {
 export type Emit = (gameId: GameId, eventName: keyof typeof EVENTS, payload: Record<string, any>) => void;
 
 export interface ISettings extends IGameSettings {
+	timer: number;
 	password?: string;
 	max_players: number;
+	max_score: number;
 }
 
 const getCurrentUser = () => {
@@ -98,8 +100,8 @@ export class Controller {
 				ws.emit(EVENTS.GET_CURRENT_USER, getCurrentUser());
 			});
 
-			ws.on(EVENTS.CREATE_GAME, (payload: ICreateGamePayload) => {
-				const { game, gameId } = this.createGame(payload.sessionId, payload);
+			ws.on(EVENTS.CREATE_GAME, async (payload: ICreateGamePayload) => {
+				const { game, gameId } = await this.createGame(payload.sessionId, payload);
 
 				this.emitAll(EVENTS.UPDATE_GAME_LIST, this.gameIds);
 				ws.emit(EVENTS.CREATE_GAME, JSON.stringify({ gameId, game: game.getState() }));
@@ -143,21 +145,36 @@ export class Controller {
 		});
 	}
 
-	public createGame(sessionId: SessionId, { settings, user }: { settings: ISettings; user: IUser }) {
-		const gameId = uuid4();
+	private async createGame(sessionId: SessionId, { settings, user }: { settings: ISettings; user: IUser }) {
+		const gameSettings = {
+			timer: settings.timer || DEFAULT_TIMER_VALUE_SEC,
+			max_score: settings.max_score || DEFAULT_MAX_SCORE_VALUE
+		}
 
-		const game = new GameEngine(this.emit, gameId, settings, user);
-		this.subscribe(gameId, sessionId);
+		const dictionary = new Dictionary();
+		await dictionary.load();
+	
+		const game = new GameEngine(this.emit, gameSettings, user, dictionary);
+		const { id } = game;
 
-		this.games[gameId] = {
+		this.subscribe(id, sessionId);
+
+		this.games[id] = {
 			instance: game,
 			password: settings.password,
 			max_players: settings.max_players,
 		};
 
-		this.gameIds.push(gameId);
+		this.gameIds.push(id);
 
-		return { gameId, game };
+		return { gameId: id, game };
+	}
+
+	private canJoinGame(gameId: GameId) {
+		const game = this.games[gameId];
+		const players = game.instance.getPlayers().length;
+	
+		return !(game.max_players === players);
 	}
 
 	public join({ sessionId, params, user }: IJoinGamePayload) {
@@ -171,7 +188,7 @@ export class Controller {
 				return;
 			}
 
-			if (game.instance.canJoin(game.max_players)) {
+			if (this.canJoinGame(params.gameId)) {
 				console.error('The game already have maximum players');
 				return;
 			}

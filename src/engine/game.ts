@@ -2,7 +2,8 @@ import uuid4 from 'uuid4';
 import type { Emit } from '../server/controller';
 import { ITimerInstance, Timer } from '../server/services/Timer';
 import type { ILettersService } from '../server/services/Letters';
-import type { LetterId, Letters, UserId, GameId, Field, IPlayer, ISpectator, IUser } from '../types';
+import type { IDictionary } from '../server/services/dictionary';
+import type { LetterId, Letters, UserId, GameId, Field, IPlayer, ISpectator, IUser, IWord } from '../types';
 import { generateFieldSchema } from './helpers';
 import {
 	EVENTS,
@@ -19,19 +20,11 @@ export interface IGameSettings {
 	max_score: number;
 }
 
-export interface Word {
-	letters: LetterId[];
-	type: 'vertical' | 'horizontal';
-	position: {
-		x: number;
-		y: number;
-	};
+export interface ITurn {
+	words: IWord[];
 }
 
-export interface Turn {
-	playerId: UserId;
-	words: Word[];
-}
+export type IPrevTurn = ITurn;
 
 export interface IState {
 	active_player: UserId;
@@ -47,26 +40,12 @@ export interface IState {
 	};
 }
 
-export interface IWord {
-	[position: string]: {
-		letterIds: LetterId[];
-		type: 'vertical' | 'horizontal';
-		score?: number;
-	};
-	// letters: LetterId[];
-	// position: {
-	// 	x: number;
-	// 	y: number;
-	// };
-	// type: 'vertical' | 'horizontal';
-	// score?: number;
-}
-
 export interface IGame {
-	nextTurn: (turn: Turn, secret: string) => void;
+	nextTurn: (turn: ITurn, secret: string) => void;
 	start: () => void;
 	emit: Emit;
 	canJoin: (max_players: number) => boolean;
+	getPlayers: () => Array<string>;
 	join: (player: ISpectator | IPlayer, pwd?: string) => void;
 	getState: () => IState;
 }
@@ -75,29 +54,29 @@ export class GameEngine implements IGame {
 	private state: IState;
 	private timer: ITimerInstance;
 	private letters: ILettersService;
-	private id: GameId;
+	public id: GameId;
 	private max_score: number;
-
 	public emit: Emit;
 
-	constructor(emit: Emit, id: GameId, settings: IGameSettings, user: IUser) {
-		const timer = new Timer(settings.timer || DEFAULT_TIMER_VALUE_SEC, this.onTimerTick, this.onTimerEnd);
-		const letters = new LettersService(letterConfig);
+	constructor(emit: Emit, settings: IGameSettings, user: IUser, dictionary: IDictionary) {
+		const timer = new Timer(settings.timer, this.onTimerTick, this.onTimerEnd);
+		const lettersService = new LettersService(letterConfig);
+		const initialWord = dictionary.getInitialWord();
 
-		this.id = id;
+		const letters = this.placeWordOnTheField(initialWord, lettersService.getLetters());
 
 		this.state = {
 			active_player: user.id,
 			players: {
 				[user.id]: {
 					...user,
-					letters: letters.getRandomLetters(PLAYER_DEFAULT_LETTERS_COUNT),
+					letters: lettersService.getRandomLetters(PLAYER_DEFAULT_LETTERS_COUNT),
 					role: ROLES.PARTICIPANT,
 					score: 0,
 				},
 			},
 			spectators: [],
-			letters: letters.getLetters(),
+			letters: letters,
 			field: generateFieldSchema(),
 			timer: {
 				time: settings.timer,
@@ -105,20 +84,25 @@ export class GameEngine implements IGame {
 			},
 		};
 
+		this.id = uuid4();
 		this.timer = timer;
-		this.letters = letters;
+		this.letters = lettersService;
 		this.max_score = settings.max_score;
 		this.emit = emit;
+
 	}
 
 	public start() {
 		this.timer.start();
 	}
 
+	public getPlayers() {
+		return Object.keys(this.state.players);
+	}
+
 	public onTimerEnd() {
 		this.nextTurn(
 			{
-				playerId: this.state.active_player,
 				words: [],
 			},
 			this.state.players[this.state.active_player].secret!,
@@ -134,8 +118,52 @@ export class GameEngine implements IGame {
 		return players[nextPlayerIndex];
 	}
 
-	public nextTurn(turn: Turn, secret: string) {
-		const player = this.state.players[turn.playerId];
+	public calculateWordScore() { }
+
+	private placeWordOnTheField(word: string, letters: Letters) {
+		let newLetters = {...letters};
+		let test = 1;
+
+		const position = {
+			x: 4,
+			y: 7
+		};
+
+		for (let i = 0; i < word.length; i++) {
+			const wordLetter = word[i].toUpperCase();
+
+			for (let j = 0; j < Object.keys(newLetters).length; j++) {
+				const letterId = Object.keys(newLetters)[j];
+				const letter = newLetters[letterId];
+
+				if (letter.value === wordLetter) {
+					if (letter.located.in === 'stock') {
+						test = 2 + j;
+						newLetters = {
+							...newLetters,
+							[letterId]: {
+								...newLetters[letterId],
+								located: {
+									in: 'field',
+									position: {
+										x: position.x + i,
+										y: position.y
+									}
+								}
+							}
+						}
+						break;
+
+					}
+				}
+			}
+		}
+
+		return newLetters;
+	}
+
+	public nextTurn(turn: ITurn, secret: string) {
+		const player = this.state.players[this.state.active_player];
 
 		if (secret !== player.secret) {
 			console.error('Not a valid user for the current turn');
@@ -143,56 +171,56 @@ export class GameEngine implements IGame {
 
 		const newSecret = uuid4();
 
-		if (turn.words.length) {
-			turn.words.forEach((word) => {
-				let score = 0;
-				let wordMultiplier = 0;
-				const { letters, position, type } = word;
+		// if (turn.words.length) {
+		// 	turn.words.forEach((word) => {
+		// 		let score = 0;
+		// 		let wordMultiplier = 0;
+		// 		const { letters, position, type } = word;
 
-				letters.forEach((letterId, index) => {
-					const letter = this.state.letters[letterId];
+		// 		letters.forEach((letterId, index) => {
+		// 			const letter = this.state.letters[letterId];
 
-					letter.located = {
-						in: 'field',
-						position: {
-							x: type === 'horizontal' ? position.x + index : position.x,
-							y: type === 'vertical' ? position.y + index : position.y,
-						},
-					};
-					const fieldBonus = this.state.field[letter.located.position.y][letter.located.position.x];
+		// 			letter.located = {
+		// 				in: 'field',
+		// 				// position: {
+		// 				// 	x: type === 'horizontal' ? position.x + index : position.x,
+		// 				// 	y: type === 'vertical' ? position.y + index : position.y,
+		// 				// },
+		// 			};
+		// 			const fieldBonus = this.state.field[letter.located.position.y][letter.located.position.x];
 
-					if (fieldBonus) {
-						switch (fieldBonus) {
-							case 'w3':
-								wordMultiplier += 3;
-								break;
-							case 'w2':
-								wordMultiplier += 2;
-								break;
-							case 'l3':
-								letter.price *= 3;
-								break;
-							case 'l2':
-								letter.price *= 2;
-								break;
-							default:
-								return null;
-						}
-						// each bonus could be used only once during the game
-						this.state.field[letter.located.position.y][letter.located.position.x] = null;
-					}
+		// 			if (fieldBonus) {
+		// 				switch (fieldBonus) {
+		// 					case 'w3':
+		// 						wordMultiplier += 3;
+		// 						break;
+		// 					case 'w2':
+		// 						wordMultiplier += 2;
+		// 						break;
+		// 					case 'l3':
+		// 						letter.price *= 3;
+		// 						break;
+		// 					case 'l2':
+		// 						letter.price *= 2;
+		// 						break;
+		// 					default:
+		// 						return null;
+		// 				}
+		// 				// each bonus could be used only once during the game
+		// 				this.state.field[letter.located.position.y][letter.located.position.x] = null;
+		// 			}
 
-					score += letter.price;
-					this.state.letters[letterId] = letter;
-				});
+		// 			score += letter.price;
+		// 			this.state.letters[letterId] = letter;
+		// 		});
 
-				if (wordMultiplier) {
-					score *= wordMultiplier;
-				}
+		// 		if (wordMultiplier) {
+		// 			score *= wordMultiplier;
+		// 		}
 
-				this.state.players[turn.playerId].score += score;
-			});
-		}
+		// 		this.state.players[turn.playerId].score += score;
+		// 	});
+		// }
 
 		player.secret = newSecret;
 
@@ -204,9 +232,9 @@ export class GameEngine implements IGame {
 			player.letters = [...player.letters, ...letterIds];
 		}
 
-		this.state.active_player = this.getNextPlayerId();
+		this.state.players[this.state.active_player] = player;
 
-		this.state.players[turn.playerId] = player;
+		this.state.active_player = this.getNextPlayerId();
 
 		if (player.score >= this.max_score) {
 			this.finish(player);

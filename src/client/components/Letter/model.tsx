@@ -1,13 +1,15 @@
 import * as React from 'react';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import { IProps as IViewProps } from './view';
-
-import data from './data.json';
+import { CSS } from '@dnd-kit/utilities';
 
 export type SyntheticListenerMap = Record<string, Function>;
 
 export interface IProps {
 	letterId: string;
+	letters: any; // вынести в редакс
+	position?: Record<string, string | number>;
+	styles?: Record<string, string | number>;
 	isSelected?: boolean;
 	onClick?: (e?: React.SyntheticEvent) => void;
 	onRightClick?: (e?: React.SyntheticEvent) => void;
@@ -29,11 +31,11 @@ function Model(
 	React.PropsWithoutRef<IEncapsulatedProps & IProps> & React.RefAttributes<HTMLDivElement>
 > {
 	const LetterModel = React.forwardRef<HTMLDivElement, IEncapsulatedProps & IProps>(
-		({ letterId, ...rest }: React.PropsWithoutRef<IProps & IEncapsulatedProps>, ref: any) => {
+		({ letterId, letters, styles, ...rest }: React.PropsWithoutRef<IProps & IEncapsulatedProps>, ref: any) => {
 			const letter: {
 				price: number;
 				value: string;
-			} = (data as any).letters[letterId];
+			} = letters[letterId];
 
 			if (!letter) {
 				return null;

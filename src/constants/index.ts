@@ -7,6 +7,7 @@ export const DEFAULT_FIELD_SIZE = {
 };
 
 export const DEFAULT_TIMER_VALUE_SEC = 60 * 2; // 2 min
+export const DEFAULT_MAX_SCORE_VALUE = 200;
 
 export const PLAYER_DEFAULT_LETTERS_COUNT = 7;
 

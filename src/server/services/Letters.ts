@@ -19,8 +19,6 @@ export class LettersService implements ILettersService {
 		const letters: Letters = {};
 		let index = 0;
 
-		console.log('...copiedConfig......', copiedConfig);
-
 		while (copiedConfig.length) {
 			const letter = copiedConfig.shift() as ILetterConfig;
 

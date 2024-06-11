@@ -1,7 +1,6 @@
 import * as React from 'react';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import { IProps as IViewProps } from './view';
-import { CSS } from '@dnd-kit/utilities';
 
 export type SyntheticListenerMap = Record<string, Function>;
 

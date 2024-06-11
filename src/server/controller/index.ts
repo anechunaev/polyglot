@@ -45,6 +45,10 @@ export interface Subscriptions {
 	[gameId: GameId]: ClientId[];
 }
 
+export interface SessionMap {
+	[sessionId: SessionId]: GameId;
+}
+
 export interface Sessions {
 	[sessionId: SessionId]: Socket;
 }
@@ -78,6 +82,7 @@ export class Controller {
 	private gameIds: GameId[];
 	private subscription: Subscriptions;
 	private sessions: Sessions;
+	private sessionMap: SessionMap;
 	private server: Server;
 
 	constructor(server: Server) {
@@ -85,6 +90,7 @@ export class Controller {
 		this.gameIds = [];
 		this.subscription = {};
 		this.sessions = {};
+		this.sessionMap = {};
 
 		this.server = server;
 		this.emit = this.emit.bind(this);
@@ -95,6 +101,14 @@ export class Controller {
 			this.sessions[sessionId as string] = ws;
 
 			console.log(`Client with session id ${sessionId} was connected`);
+
+			const activeGame = this.sessionMap[sessionId as string];
+
+			if (activeGame) {
+				const gameState = this.games[activeGame].instance.getState();
+
+				ws.emit(EVENTS.GAME_SESSION_RECONNECT, JSON.stringify({gameId: activeGame, game: gameState}));
+			}
 
 			ws.on(EVENTS.GET_CURRENT_USER, () => {
 				ws.emit(EVENTS.GET_CURRENT_USER, getCurrentUser());
@@ -129,6 +143,10 @@ export class Controller {
 		}
 	}
 
+	private createGameSession(gameId: GameId, sessionId: SessionId) {
+		this.sessionMap[sessionId] = gameId;
+	}
+
 	public emit = (gameId: GameId, eventName: keyof typeof EVENTS, payload: Record<string, any>) => {
 		const sessionIds = this.subscription[gameId];
 
@@ -158,6 +176,7 @@ export class Controller {
 		const { id } = game;
 
 		this.subscribe(id, sessionId);
+		this.createGameSession(id, sessionId);
 
 		this.games[id] = {
 			instance: game,

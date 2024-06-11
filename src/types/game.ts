@@ -7,12 +7,13 @@ export type GameId = string;
 export type ISearchParam = string;
 
 
-export interface IWord {
-	[position: string]: {
-		letterIds: LetterId[];
-		type: 'vertical' | 'horizontal';
-		score?: number;
-	};
+export interface IWords {
+    [id: string]: {
+        start: string;
+        letterIds: LetterId[];
+        kind: 'vertical' | 'horizontal';
+        score?: number;
+    }
 }
 
 export interface IGameState {

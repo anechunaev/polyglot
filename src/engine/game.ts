@@ -76,7 +76,7 @@ export class GameEngine implements IGame {
 				},
 			},
 			spectators: [],
-			letters: letters,
+			letters,
 			field: generateFieldSchema(),
 			timer: {
 				time: settings.timer,

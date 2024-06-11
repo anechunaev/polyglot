@@ -11,7 +11,7 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 	function GameModel({ eventBus }: IProps) {
 		const [user, setUser] = React.useState<IUser | null>(null);
 		const [gameState, updateGameState] = React.useState<IGameState | null>(null);
-
+	
 		React.useEffect(() => {
 			eventBus.emit(EVENTS.GET_CURRENT_USER);
 		}, [eventBus]);
@@ -19,13 +19,20 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 		eventBus.on(
 			EVENTS.CREATE_GAME,
 			React.useCallback((payload: any) => {
-				// eslint-disable-next-line no-console
-
 				const data = JSON.parse(payload);
 
 				updateGameState(() => ({ ...data.game }));
 			}, []),
 		);
+
+		eventBus.on(
+			EVENTS.GAME_SESSION_RECONNECT,
+			React.useCallback((payload: any) => {
+				const data = JSON.parse(payload);
+
+				updateGameState(() => ({ ...data.game }));
+			}, []),
+		)
 
 		eventBus.on(
 			EVENTS.GET_CURRENT_USER,

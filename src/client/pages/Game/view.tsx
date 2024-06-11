@@ -109,6 +109,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		let response: IWords = {};
 
 		if (!Object.keys(verticalWord).length && !Object.keys(horizontalWord).length) {
+			// слово из одной буквы
 			const wordId = [letterId].join(';');
 
 			response[wordId] = {
@@ -120,22 +121,19 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 
 		if (Object.keys(verticalWord).length) {
 			response = { ...response, ...verticalWord };
-			// newWords.push(verticalWord);
 		}
 
 		if (Object.keys(horizontalWord).length) {
 			response = { ...response, ...horizontalWord };
-			// newWords.push(horizontalWord);
 		}
 
 		return response;
 	}
-	const updateCurrentWords = (letterId: string, position: { x: number; y: number }) => {
+	const updateCurrentWords = (data: IWords, letterId: string, position: { x: number; y: number }) => {
 		const newLetterPosition = `${position.x};${position.y}`;
-		let wereUpdated = false;
 
-		const newWords = Object.keys(words).reduce<IWords>((acc, wordId) => {
-			const word = words[wordId];
+		const newWords = Object.keys(data).reduce<IWords>((acc, wordId) => {
+			const word = data[wordId];
 			const { start, letterIds, kind } = word;
 
 			const newWord = { ...word };
@@ -165,7 +163,6 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 					newWord.letterIds.push(letterId);
 				}
 
-				wereUpdated = true;
 				delete acc[wordId];
 				const newId = newWord.letterIds.join(';');
 
@@ -178,13 +175,13 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 			return acc;
 		}, {});
 
-		return { changedWords: newWords, wereUpdated };
+		return { changedWords: newWords };
 	}
 
 	const generateWords = (letterId: string, position: { x: number; y: number }) => {
 		if (Object.keys(words).length) {
 			let result: IWords = {};
-			const { changedWords, wereUpdated } = updateCurrentWords(letterId, position);
+			const { changedWords } = updateCurrentWords(words, letterId, position);
 			const newWords = makeNewWords(letterId, position);
 
 			result = { ...changedWords, ...newWords };
@@ -228,75 +225,52 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		}
 	};
 
-	const removeLetterFromTheWord = (letterId: string) => {
-		const letter = game?.letters[letterId];
-
-		const updatedWords = Object.keys(words).reduce<IWords>((acc, item) => {
-			const keys = item.split(';');
-			const index = keys.indexOf(letterId);
-			if (index !== -1) {
-				keys.splice(index, 1);
-
-				acc[keys.join(';')] = {
-					...words[item],
-					letterIds: keys
-				}
-			} else {
-				acc[item] = words[item];
-			}
-
-			return acc;
-		}, {});
-
-		updateWords(() => updatedWords);
-
-		if (letter?.located.in === 'field') {
-			const { position } = letter.located;
-
-
-			// const fieldCellDefaultData = game!.field[position.y][position.x];
-
-			// console.log('........fieldCellDefaultData.........', fieldCellDefaultData, position);
-
-			const newFieldData = [...field];
-
-			// тут нужно получить значение дефолтной ячейки, но почему-то объект состояния игры перезаписывается
-
-			newFieldData[position.y][position.x] = null;
-
-			updateField(() => newFieldData);
-
-			const newWords = makeNewWords(letterId, position);
-		}
-	}
-
 	const moveLetterBackTo = (id: string, initialPosition: { x: number; y: number }) => {
 		const droppedLetter = droppedLetters.get(id);
+		const { position } = droppedLetter;
+
 		if (droppedLetter?.fieldCell) {
-			dropLetters((state) => {
+			updateField(field => {
+				// @TODO: подставить дефолтное значение ячейки
+				field[position.y][position.x] = null;
 
-				state.set(id, {
-					fieldCell: null,
-					position: {
-						top: initialPosition.y,
-						left: initialPosition.x,
-					}
-				})
-				// const newState = { ...state };
-				// newState[id] = {
-				// 	fieldCell: null,
-				// 	position: {
-				// 		top: initialPosition.y,
-				// 		left: initialPosition.x,
-				// 	},
-				// };
-
-				// return newState;
-
-				return state;
+				return field;
 			});
 
-			removeLetterFromTheWord(id);
+			// костыль из-за вонючего реакта: тут ждем пока состояние поля обновится
+			setTimeout(() => {
+				dropLetters((state) => {
+					state.set(id, {
+						fieldCell: null,
+						position: {
+							top: initialPosition.y,
+							left: initialPosition.x,
+						}
+					});
+
+					state.delete(id);
+
+					updateWords(() => ({}));
+
+					const data: IWords = [...state.keys()].reduce((acc, droppedLetterId) => {
+						const letter = droppedLetters.get(droppedLetterId);
+
+						if (Object.keys(acc).length) {
+							const { changedWords } = updateCurrentWords(acc, droppedLetterId, letter.position);
+							const newWords = makeNewWords(droppedLetterId, letter.position);
+							acc = { ...changedWords, ...newWords };
+						} else {
+							const newWords = makeNewWords(droppedLetterId, letter.position);
+							acc = {...newWords};
+						}
+
+						return acc;
+					}, {});
+					updateWords(() => ({ ...data }));
+
+					return state;
+				});
+			}, 0);
 		}
 	}
 
@@ -323,11 +297,24 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 						position: {
 							top: calculatePosition(FIELD_POSITION_START_Y, pos.y),
 							left: calculatePosition(FIELD_POSITION_START_X, pos.x),
+							x: pos.x,
+							y: pos.y
 						}
 					});
 
 					return state;
 
+				});
+
+				updateField(field => {
+					field[pos.y][pos.x] = letterId;
+
+					return field;
+				});
+
+				generateWords(letterId, {
+					x: pos.x,
+					y: pos.y
 				});
 
 				const indexOf = selectedLetters.indexOf(letterId.toString());
@@ -362,27 +349,19 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 					position: {
 						top: calculatePosition(FIELD_POSITION_START_Y, position.y),
 						left: calculatePosition(FIELD_POSITION_START_X, position.x),
+						x: position.x,
+						y: position.y
 					},
 				});
 
 				return state;
-				// const newState = { ...state };
-				// newState[letterId] = {
-				// 	fieldCell: over.id,
-				// 	position: {
-				// 		top: calculatePosition(FIELD_POSITION_START_Y, position.y),
-				// 		left: calculatePosition(FIELD_POSITION_START_X, position.x),
-				// 	},
-				// };
-
-				// return newState;
 			});
 
 			updateField(field => {
 				field[position.y][position.x] = letterId;
 
 				return field;
-			})
+			});
 
 			generateWords(letterId, position);
 		} else {

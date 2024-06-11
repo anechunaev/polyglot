@@ -186,6 +186,19 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 
 			result = { ...changedWords, ...newWords };
 
+			const wordsIds = Object.keys(result);
+
+			if (wordsIds.length > 1) {
+				const lastWordId = wordsIds.pop();
+
+				wordsIds.forEach(wordId => {
+					if (lastWordId?.includes(wordId)) {
+						delete result[wordId];
+					}
+				})
+			}
+
+			
 			updateWords(() => ({ ...result }));
 		} else {
 

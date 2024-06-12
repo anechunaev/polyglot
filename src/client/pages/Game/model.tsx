@@ -2,6 +2,8 @@ import * as React from 'react';
 import { EVENTS } from '../../../constants';
 import type { IProps as IViewProps } from './view';
 import type { IGameState, IUser } from '../../../types';
+import { useAppDispatch } from '../../hooks';
+import { updateLetters } from '../../reducers';
 
 export interface IProps {
 	eventBus: any;
@@ -11,7 +13,8 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 	function GameModel({ eventBus }: IProps) {
 		const [user, setUser] = React.useState<IUser | null>(null);
 		const [gameState, updateGameState] = React.useState<IGameState | null>(null);
-	
+		const dispatch = useAppDispatch();
+
 		React.useEffect(() => {
 			eventBus.emit(EVENTS.GET_CURRENT_USER);
 		}, [eventBus]);
@@ -22,6 +25,8 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 				const data = JSON.parse(payload);
 
 				updateGameState(() => ({ ...data.game }));
+
+				dispatch(updateLetters({ ...data.game.letters }));
 			}, []),
 		);
 
@@ -31,6 +36,7 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 				const data = JSON.parse(payload);
 
 				updateGameState(() => ({ ...data.game }));
+				dispatch(updateLetters({ ...data.game.letters }));
 			}, []),
 		)
 

@@ -1,6 +1,8 @@
 import * as React from 'react';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import { IProps as IViewProps } from './view';
+import { useAppSelector } from '../../hooks';
+import { selectLetter } from '../../reducers';
 
 export type SyntheticListenerMap = Record<string, Function>;
 
@@ -31,10 +33,7 @@ function Model(
 > {
 	const LetterModel = React.forwardRef<HTMLDivElement, IEncapsulatedProps & IProps>(
 		({ letterId, letters, styles, ...rest }: React.PropsWithoutRef<IProps & IEncapsulatedProps>, ref: any) => {
-			const letter: {
-				price: number;
-				value: string;
-			} = letters[letterId];
+			const letter = useAppSelector(state => selectLetter(state, letterId));
 
 			if (!letter) {
 				return null;
@@ -46,9 +45,9 @@ function Model(
 
 	LetterModel.defaultProps = {
 		isSelected: false,
-		onClick: () => {},
-		onRightClick: () => {},
-		onDoubleClick: () => {},
+		onClick: () => { },
+		onRightClick: () => { },
+		onDoubleClick: () => { },
 		classes: {},
 		style: undefined,
 		attributes: undefined,

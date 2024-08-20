@@ -1,13 +1,11 @@
 import * as React from 'react';
 import type { DraggableAttributes } from '@dnd-kit/core';
 import { IProps as IViewProps } from './view';
-import { useAppSelector } from '../../hooks';
-import { selectLetter } from '../../reducers';
 
 export type SyntheticListenerMap = Record<string, Function>;
 
 export interface IProps {
-	letterId: string;
+	letter: any;
 	position?: Record<string, string | number>;
 	styles?: Record<string, string | number>;
 	isSelected?: boolean;
@@ -31,9 +29,7 @@ function Model(
 	React.PropsWithoutRef<IEncapsulatedProps & IProps> & React.RefAttributes<HTMLDivElement>
 > {
 	const LetterModel = React.forwardRef<HTMLDivElement, IEncapsulatedProps & IProps>(
-		({ letterId, styles, ...rest }: React.PropsWithoutRef<IProps & IEncapsulatedProps>, ref: any) => {
-			const letter = useAppSelector(state => selectLetter(state, letterId));
-
+		({ letter, styles, ...rest }: React.PropsWithoutRef<IProps & IEncapsulatedProps>, ref: any) => {
 			if (!letter) {
 				return null;
 			}

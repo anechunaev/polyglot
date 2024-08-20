@@ -483,18 +483,14 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 								const isDisabledCell = Object.values(droppedLetters)?.some(
 									(letter) => {
 										const res = (letter as any)?.fieldCell === id;
-
-										console.log('----RES----', res, id, letter);
 										return res;
 									},
 								);
 
-								console.log('----isDisableCell-------', isDisabledCell, id);
-
 								return (
 									<DroppableCell
 										id={id}
-										//@TODO: переделать
+										// @TODO: переделать
 										disabled={isDisabledCell}
 										position={position}
 										key={h32(`${(value && !isLetterId ? value : '') + id}dr-cell`, 0xabcd).toString()}

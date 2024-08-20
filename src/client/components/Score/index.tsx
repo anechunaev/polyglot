@@ -2,7 +2,7 @@ import * as React from 'react';
 import View, { IProps } from './view';
 import withStyles from '../withStyles';
 import { useAppSelector } from '../../hooks';
-import { selectActivePlayer, selectPlayers } from './../../reducers/';
+import { selectActivePlayer, selectPlayers } from "../../reducers";
 import styles from './styles.scss';
 
 const Component = withStyles<IProps>(View, styles);

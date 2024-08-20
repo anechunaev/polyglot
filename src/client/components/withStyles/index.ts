@@ -23,13 +23,11 @@ function withStyles<P = {}, R = unknown>(
 	opts: IWithStylesOptions = { withMergeClasses: false }
 ): IOuterComponent<P, R> {
 	const styled = React.forwardRef<R, P & Partial<IWithStylesProps>>(
-		(props: P & Partial<IWithStylesProps>, ref: React.ForwardedRef<R>) => {
-			return React.createElement(Component, {
+		(props: P & Partial<IWithStylesProps>, ref: React.ForwardedRef<R>) => React.createElement(Component, {
 				...props,
 				ref,
 				classes: deepMerge(styles, props.classes ?? {}),
-			})
-		},
+			}),
 	);
 
 	styled.displayName = `WithStyles(${Component.displayName || Component.name})`;

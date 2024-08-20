@@ -5,7 +5,7 @@ import Cell from '../Cell';
 import Timer from '../TurnTimer';
 import Button from '../Button';
 import Input from '../Input';
-import Score from '../../components/Score';
+import Score from "../Score";
 import SearchIcon from './assets/search.svg';
 import type { IGameState } from '../../../types';
 import { PLAYER_DEFAULT_LETTERS_COUNT } from '../../../constants';
@@ -25,7 +25,7 @@ function SidebarView({ classes, activePlayer, players }: IEncapsulatedProps) {
 			return null
 		}
 
-		const name = players[activePlayer].name;
+		const {name} = players[activePlayer];
 		return name && <span className={classes.activePlayerLabel}>Ход игрока {name}</span>
 	}
 

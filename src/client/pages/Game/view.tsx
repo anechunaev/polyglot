@@ -181,33 +181,24 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		return { changedWords: newWords };
 	}
 
-	const generateWords = (letterId: string, position: { x: number; y: number }) => {
-		if (Object.keys(words).length) {
-			let result: IWords = {};
-			const { changedWords } = updateCurrentWords(words, letterId, position);
-			const newWords = makeNewWords(letterId, position);
+	const generateWords = (items: Map<string, any>) => {
+		const data: IWords = [...items.keys()].reduce((acc, droppedLetterId) => {
+			const letter = items.get(droppedLetterId);
 
-			result = { ...changedWords, ...newWords };
-
-			const wordsIds = Object.keys(result);
-
-			if (wordsIds.length > 1) {
-				const lastWordId = wordsIds.pop();
-
-				wordsIds.forEach(wordId => {
-					if (lastWordId?.includes(wordId)) {
-						delete result[wordId];
-					}
-				})
+			if (Object.keys(acc).length) {
+				const { changedWords } = updateCurrentWords(acc, droppedLetterId, letter.position);
+				const newWords = makeNewWords(droppedLetterId, letter.position);
+				acc = { ...changedWords, ...newWords };
+			} else {
+				const newWords = makeNewWords(droppedLetterId, letter.position);
+				acc = { ...newWords };
 			}
 
+			return acc;
+		}, {});
 
-			updateWords(() => ({ ...result }));
-		} else {
-
-			const newWords = makeNewWords(letterId, position);
-			updateWords(state => ({ ...state, ...newWords }));
-		}
+		return data;
+	
 	}
 
 	const toogleSelected = (id: string) => {
@@ -269,7 +260,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 					updateWords(() => ({}));
 
 					const data: IWords = [...state.keys()].reduce((acc, droppedLetterId) => {
-						const letter = droppedLetters.get(droppedLetterId);
+						const letter = state.get(droppedLetterId);
 
 						if (Object.keys(acc).length) {
 							const { changedWords } = updateCurrentWords(acc, droppedLetterId, letter.position);
@@ -307,31 +298,34 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 			if (selectedLetters.length) {
 				const letterId = selectedLetters[0];
 
-				dropLetters((state) => {
-					state.set(letterId, {
-						fieldCell: id,
-						position: {
-							top: calculatePosition(FIELD_POSITION_START_Y, pos.y),
-							left: calculatePosition(FIELD_POSITION_START_X, pos.x),
-							x: pos.x,
-							y: pos.y
-						}
-					});
-
-					return state;
-
-				});
-
 				updateField(field => {
 					field[pos.y][pos.x] = letterId;
 
 					return field;
 				});
 
-				generateWords(letterId, {
-					x: pos.x,
-					y: pos.y
-				});
+				setTimeout(() => {
+					dropLetters((state) => {
+						state.set(letterId, {
+							fieldCell: id,
+							position: {
+								top: calculatePosition(FIELD_POSITION_START_Y, pos.y),
+								left: calculatePosition(FIELD_POSITION_START_X, pos.x),
+								x: pos.x,
+								y: pos.y
+							}
+						});
+
+						const data: IWords = generateWords(state);
+
+						console.log('-----DATA-----', data);
+		
+						updateWords(() => ({ ...data }));
+	
+						return state;
+	
+					});
+				}, 0);
 
 				const indexOf = selectedLetters.indexOf(letterId.toString());
 
@@ -352,34 +346,49 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		const letter = game!.letters[letterId];
 
 		if (over) {
+			let prevPosition: { x: number; y: number };
+			if (letter.located.in === 'field') {
+				prevPosition = { ...letter.located.position };
+				console.log('-----PREVIOUS POSITION-----', prevPosition);
+			}
+
 			const { position } = over.data.current as any;
+			console.log('-------NEW POSITION--------', position);
 
 			letter.located = {
 				in: 'field',
 				position,
 			};
 
-			dropLetters((state) => {
-				state.set(letterId, {
-					fieldCell: over.id,
-					position: {
-						top: calculatePosition(FIELD_POSITION_START_Y, position.y),
-						left: calculatePosition(FIELD_POSITION_START_X, position.x),
-						x: position.x,
-						y: position.y
-					},
-				});
-
-				return state;
-			});
-
 			updateField(field => {
 				field[position.y][position.x] = letterId;
-
+				if (prevPosition) {
+					// @TODO: set default cell value
+					field[prevPosition.y][prevPosition.x] = null;
+				}
 				return field;
 			});
 
-			generateWords(letterId, position);
+			setTimeout(() => {
+				dropLetters((state) => {
+					state.set(letterId, {
+						fieldCell: over.id,
+						position: {
+							top: calculatePosition(FIELD_POSITION_START_Y, position.y),
+							left: calculatePosition(FIELD_POSITION_START_X, position.x),
+							x: position.x,
+							y: position.y
+						},
+					});
+					const data: IWords = generateWords(state);
+
+					console.log('-----DATA-----', data);
+	
+					updateWords(() => ({ ...data }));
+
+					return state;
+				});
+			}, 0);
 		} else {
 			const { initialPosition } = active.data.current as any;
 			letter.located.in = 'player';

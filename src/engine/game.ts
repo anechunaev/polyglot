@@ -32,7 +32,7 @@ export interface IState {
 		[playerId: string]: IPlayer;
 	};
 	spectators: IUser[];
-	letters: Letters;
+	letters?: Letters;
 	field: Field;
 	timer: {
 		time: number;
@@ -68,8 +68,6 @@ export class GameEngine implements IGame {
 		const lettersService = new LettersService(letterConfig);
 		const initialWord = dictionary.getInitialWord();
 
-		const letters = this.placeWordOnTheField(initialWord, lettersService.getLetters());
-
 		this.state = {
 			activePlayer: user.id,
 			players: {
@@ -81,13 +79,16 @@ export class GameEngine implements IGame {
 				},
 			},
 			spectators: [],
-			letters,
 			field: generateFieldSchema(),
 			timer: {
 				time: settings.timer,
 				total: settings.timer,
 			},
 		};
+
+		const letters = this.placeWordOnTheField(initialWord, lettersService.getLetters());
+
+		this.state.letters = letters;
 
 		this.id = uuid4();
 		this.timer = timer;
@@ -127,8 +128,6 @@ export class GameEngine implements IGame {
 
 	private placeWordOnTheField(word: string, letters: Letters) {
 		let newLetters = {...letters};
-		let test = 1;
-
 		const position = {
 			x: 4,
 			y: 7
@@ -143,7 +142,8 @@ export class GameEngine implements IGame {
 
 				if (letter.value === wordLetter) {
 					if (letter.located.in === 'stock') {
-						test = 2 + j;
+						const top = position.y;
+						const left =  position.x + i;
 						newLetters = {
 							...newLetters,
 							[letterId]: {
@@ -151,12 +151,15 @@ export class GameEngine implements IGame {
 								located: {
 									in: 'field',
 									position: {
-										x: position.x + i,
-										y: position.y
+										x: left,
+										y: top
 									}
 								}
 							}
-						}
+
+						};
+
+						this.state.field[top][left] = letterId;
 						break;
 
 					}

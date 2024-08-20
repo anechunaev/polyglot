@@ -10,7 +10,7 @@ import Field from '../../components/Field';
 import DroppableCell from '../../components/DroppableCell';
 import DraggableLetter from '../../components/DraggableLetter';
 import Letter from '../../components/Letter';
-import schema from '../schema.json';
+// import schema from '../schema.json';
 import Button from '../../components/Button';
 
 const FIELD_POSITION_START_X = 59;
@@ -58,7 +58,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 			if (up) {
 				--position[axis];
 
-				const data = field[position.y][position.x];
+				const data = game!.field[position.y][position.x];
 				const isLetter = data && !isNaN(Number(data));
 
 				if (!isLetter) {
@@ -77,7 +77,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 
 			++position[axis];
 
-			const data = field[position.y][position.x];
+			const data = game!.field[position.y][position.x];
 			const isLetter = data && !isNaN(Number(data));
 
 			if (!isLetter) {
@@ -237,12 +237,12 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		const { position } = droppedLetter;
 
 		if (droppedLetter?.fieldCell) {
-			updateField(field => {
-				// @TODO: подставить дефолтное значение ячейки
-				field[position.y][position.x] = null;
+			// updateField(field => {
+			// 	// @TODO: подставить дефолтное значение ячейки
+			// 	field[position.y][position.x] = null;
 
-				return field;
-			});
+			// 	return field;
+			// });
 
 			// костыль из-за вонючего реакта: тут ждем пока состояние поля обновится
 			setTimeout(() => {
@@ -298,11 +298,11 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 			if (selectedLetters.length) {
 				const letterId = selectedLetters[0];
 
-				updateField(field => {
-					field[pos.y][pos.x] = letterId;
+				// updateField(field => {
+				// 	field[pos.y][pos.x] = letterId;
 
-					return field;
-				});
+				// 	return field;
+				// });
 
 				setTimeout(() => {
 					dropLetters((state) => {
@@ -360,14 +360,14 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 				position,
 			};
 
-			updateField(field => {
-				field[position.y][position.x] = letterId;
-				if (prevPosition) {
-					// @TODO: set default cell value
-					field[prevPosition.y][prevPosition.x] = null;
-				}
-				return field;
-			});
+			// updateField(field => {
+			// 	field[position.y][position.x] = letterId;
+			// 	if (prevPosition) {
+			// 		// @TODO: set default cell value
+			// 		field[prevPosition.y][prevPosition.x] = null;
+			// 	}
+			// 	return field;
+			// });
 
 			setTimeout(() => {
 				dropLetters((state) => {
@@ -395,65 +395,6 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 			moveLetterBackTo(letterId, initialPosition);
 		}
 	};
-
-
-	// @todo: унести на сервер
-	const updateFieldState = (lettersSet: Record<string, string>) => {
-		const field = [...game!.field];
-
-		for (let y = 0; y < game!.field.length; y++) {
-			for (let x = 0; x < game!.field[y].length; x++) {
-
-				const pos = `${x};${y}`;
-
-				const letter = lettersSet[pos];
-
-				if (letter) {
-					field[y][x] = letter;
-				}
-			}
-		}
-
-		updateField(field);
-	}
-
-	const renderFieldLetters = React.useMemo(() => {
-		const fieldLetters = Object.keys((game?.letters || [])).filter(letterId => game?.letters[letterId].located.in === 'field');
-
-		const lettersPositionSet = fieldLetters.reduce<Record<string, string>>((acc, letterId) => {
-			const letter = game?.letters[letterId] as unknown as any;
-			const position = `${letter.located.position.x};${letter.located.position.y}`;
-
-			acc[position] = letterId;
-
-			return acc;
-
-		}, {});
-
-		// @todo: унести на сервер
-		if (Object.keys(lettersPositionSet).length) {
-			updateFieldState(lettersPositionSet);
-		}
-
-		return (
-			<div>
-				{fieldLetters?.map((letterId, i) => {
-					const letter = game?.letters[letterId] as unknown as any;
-					return (
-						<Letter
-							key={h32(letterId, 0xabcd).toString()}
-							letters={game?.letters}
-							position={{
-								top: calculatePosition(FIELD_POSITION_START_Y, letter.located.position.y),
-								left: calculatePosition(FIELD_POSITION_START_X, letter.located.position.x),
-							}}
-							letterId={letterId}
-						/>
-					);
-				})}
-			</div>
-		);
-	}, [game])
 
 	const renderPlayerLetters = () => {
 		const playerLetters = game?.players[userId].letters;
@@ -500,32 +441,68 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 
 	console.log('---------words--------', words);
 
+	const renderLetter = (letterId: string) => {
+		const letter = game?.letters[letterId] as unknown as any;
+
+		console.log('------LETTER-------', letter);
+
+		// return null;
+
+		return (
+			<Letter
+				key={h32(letterId, 0xabcd).toString()}
+				position={{
+					top: calculatePosition(FIELD_POSITION_START_Y, letter.located.position.y),
+					left: calculatePosition(FIELD_POSITION_START_X, letter.located.position.x),
+				}}
+				letterId={letterId}
+			/>
+		);
+	}
+
+	console.log('----RERENDER-----');
+	
 	return (
 		<div className={classes.game}>
 			<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={sensors}>
 				<Field>
-					{(schema as ICellProps['bonus'][][]).map((row, index) => (
+					{(game?.field as ICellProps['bonus'][][]).map((row, index) => (
 						<div
 							key={h32(`${JSON.stringify(row) + index}row`, 0xabcd).toString()}
 							style={{ width: '614px', gap: '1px', display: 'flex', margin: 0 }}
 						>
-							{row.map((bonus, i) => {
+							{row.map((value, i) => {
 								const id = i.toString() + index.toString();
 								const position = {
 									x: i,
 									y: index,
 								};
+
+								const isLetterId = value && (!isNaN(Number(value)));
+
+								const isDisabledCell = Object.values(droppedLetters)?.some(
+									(letter) => {
+										const res = (letter as any)?.fieldCell === id;
+
+										console.log('----RES----', res, id, letter);
+										return res;
+									},
+								);
+
+								console.log('----isDisableCell-------', isDisabledCell, id);
+
 								return (
 									<DroppableCell
 										id={id}
-										disabled={Object.values(droppedLetters)?.some(
-											(letter) => (letter as any)?.fieldCell === id,
-										)}
+										//@TODO: переделать
+										disabled={isDisabledCell}
 										position={position}
-										key={h32(`${(bonus || '') + id}dr-cell`, 0xabcd).toString()}
-										bonus={bonus}
+										key={h32(`${(value && !isLetterId ? value : '') + id}dr-cell`, 0xabcd).toString()}
+										bonus={value && !isLetterId ? value : null}
 										onClick={() => onCellClick(id, position)}
-									/>
+									>
+										{isLetterId && createPortal(renderLetter(value as unknown as string), document.body)}
+									</DroppableCell>
 								);
 							})}
 						</div>
@@ -533,7 +510,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 				</Field>
 				<Sidebar />
 				{createPortal(renderPlayerLetters(), document.body)}
-				{createPortal(renderFieldLetters, document.body)}
+				{/* {createPortal(renderFieldLetters, document.body)} */}
 			</DndContext>
 		</div>
 	);

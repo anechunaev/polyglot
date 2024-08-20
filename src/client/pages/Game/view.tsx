@@ -4,6 +4,7 @@ import { h32 } from 'xxhashjs';
 import { DndContext, MouseSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
 import type { IProps as ICellProps } from '../../components/Cell/view';
 import type { IGameState, UserId, IWords } from '../../../types';
+import { PLAYER_DEFAULT_LETTERS_COUNT } from '../../../constants';
 import Sidebar from '../../components/Sidebar';
 import Field from '../../components/Field';
 import DroppableCell from '../../components/DroppableCell';
@@ -16,7 +17,7 @@ const FIELD_POSITION_START_X = 59;
 const FIELD_POSITION_START_Y = 9;
 
 const LETTERS_POSITION_START_X = 727;
-const LETTERS_POSITION_START_Y = 73;
+const LETTERS_POSITION_START_Y = 89;
 
 const LETTER_WIDTH = 40;
 
@@ -99,6 +100,8 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 				kind: axis === 'y' ? 'vertical' : 'horizontal'
 			}
 		}
+
+		console.log('-----makeWord------', result);
 
 		return result;
 	}
@@ -198,7 +201,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 				})
 			}
 
-			
+
 			updateWords(() => ({ ...result }));
 		} else {
 
@@ -274,7 +277,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 							acc = { ...changedWords, ...newWords };
 						} else {
 							const newWords = makeNewWords(droppedLetterId, letter.position);
-							acc = {...newWords};
+							acc = { ...newWords };
 						}
 
 						return acc;
@@ -483,16 +486,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		);
 	}
 
-	// DEBUG
-	const lines = Object.keys(words).map(wordId => {
-		const { letterIds } = words[wordId];
-
-		const line = letterIds.map(letterId => game?.letters[letterId].value).join('');
-
-		return line;
-	})
-
-	console.log('-----LINES----', lines);
+	console.log('---------words--------', words);
 
 	return (
 		<div className={classes.game}>

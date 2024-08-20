@@ -1,9 +1,9 @@
 import uuid4 from 'uuid4';
-import type { Emit } from '../server/controller';
+import type { Emit } from '../controller';
 import { ITimerInstance, Timer } from '../server/services/Timer';
 import type { ILettersService } from '../server/services/Letters';
 import type { IDictionary } from '../server/services/dictionary';
-import type { LetterId, Letters, UserId, GameId, Field, IPlayer, ISpectator, IUser, IWord } from '../types';
+import type { Letters, UserId, GameId, Field, IPlayer, ISpectator, IUser, IWords } from '../types';
 import { generateFieldSchema } from './helpers';
 import {
 	EVENTS,
@@ -21,13 +21,13 @@ export interface IGameSettings {
 }
 
 export interface ITurn {
-	words: IWord[];
+	words: IWords;
 }
 
 export type IPrevTurn = ITurn;
 
 export interface IState {
-	active_player: UserId;
+	activePlayer: UserId;
 	players: {
 		[playerId: string]: IPlayer;
 	};
@@ -59,14 +59,15 @@ export class GameEngine implements IGame {
 	public emit: Emit;
 
 	constructor(emit: Emit, settings: IGameSettings, user: IUser, dictionary: IDictionary) {
-		const timer = new Timer(settings.timer, this.onTimerTick, this.onTimerEnd);
+		console.log('---settings.timer -----', settings.timer );
+		const timer = new Timer(settings.timer || DEFAULT_TIMER_VALUE_SEC, this.onTimerTick, this.onTimerEnd);
 		const lettersService = new LettersService(letterConfig);
 		const initialWord = dictionary.getInitialWord();
 
 		const letters = this.placeWordOnTheField(initialWord, lettersService.getLetters());
 
 		this.state = {
-			active_player: user.id,
+			activePlayer: user.id,
 			players: {
 				[user.id]: {
 					...user,
@@ -103,15 +104,15 @@ export class GameEngine implements IGame {
 	public onTimerEnd() {
 		this.nextTurn(
 			{
-				words: [],
+				words: {},
 			},
-			this.state.players[this.state.active_player].secret!,
+			this.state.players[this.state.activePlayer].secret!,
 		);
 	}
 
 	private getNextPlayerId() {
 		const players = Object.keys(this.state.players);
-		const currentPlayerIndex = players.indexOf(this.state.active_player);
+		const currentPlayerIndex = players.indexOf(this.state.activePlayer);
 
 		const nextPlayerIndex = (currentPlayerIndex + 1) % players.length;
 
@@ -163,7 +164,7 @@ export class GameEngine implements IGame {
 	}
 
 	public nextTurn(turn: ITurn, secret: string) {
-		const player = this.state.players[this.state.active_player];
+		const player = this.state.players[this.state.activePlayer];
 
 		if (secret !== player.secret) {
 			console.error('Not a valid user for the current turn');
@@ -232,9 +233,9 @@ export class GameEngine implements IGame {
 			player.letters = [...player.letters, ...letterIds];
 		}
 
-		this.state.players[this.state.active_player] = player;
+		this.state.players[this.state.activePlayer] = player;
 
-		this.state.active_player = this.getNextPlayerId();
+		this.state.activePlayer = this.getNextPlayerId();
 
 		if (player.score >= this.max_score) {
 			this.finish(player);

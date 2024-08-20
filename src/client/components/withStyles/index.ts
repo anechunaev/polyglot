@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { deepMerge, mergeObjectStyles } from '../../helpers';
+import { deepMerge } from '../../helpers';
 
 export interface IWithStylesProps {
 	classes: Record<string, string>;
@@ -24,11 +24,10 @@ function withStyles<P = {}, R = unknown>(
 ): IOuterComponent<P, R> {
 	const styled = React.forwardRef<R, P & Partial<IWithStylesProps>>(
 		(props: P & Partial<IWithStylesProps>, ref: React.ForwardedRef<R>) => {
-			const mergeFn = opts.withMergeClasses ? mergeObjectStyles : deepMerge;
 			return React.createElement(Component, {
 				...props,
 				ref,
-				classes: mergeFn(styles, props.classes ?? {}),
+				classes: deepMerge(styles, props.classes ?? {}),
 			})
 		},
 	);

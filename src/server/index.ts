@@ -8,7 +8,7 @@ import middlewareHandler404 from './middlewares/handler404';
 import errorRequestHandler from './middlewares/errorRequestHandler';
 import healthcheck from './middlewares/healthcheck';
 import { enableGracefulShutdown } from './modules/gracefulShutdown';
-import { Controller } from './controller';
+import { Controller } from '../controller';
 
 const app = Express();
 

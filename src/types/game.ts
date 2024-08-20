@@ -6,6 +6,10 @@ export type GameId = string;
 
 export type ISearchParam = string;
 
+export interface ITimer {
+    time: number;
+    total: number;
+};
 
 export interface IWords {
     [id: string]: {
@@ -17,17 +21,14 @@ export interface IWords {
 }
 
 export interface IGameState {
-    active_player: UserId;
+    activePlayer: UserId;
     players: {
         [playerId: string]: IPlayer
     };
     spectators: IUser[];
     letters: Letters;
     id: GameId;
-    words?: IWord[];
+    words?: IWords;
     field: Field
-    timer: {
-        time: number;
-        total: number;
-    };
+    timer: ITimer;
 }

@@ -1,5 +1,6 @@
 import * as React from 'react';
 import type { IProps as IViewProps } from './view';
+import type { ITimer } from '../../../types';
 
 export interface IProps {
 	seconds: number;

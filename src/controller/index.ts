@@ -1,9 +1,9 @@
 import { Server, Socket } from 'socket.io';
-import type { UserId, GameId, IPlayer, ISpectator, IUser, IWord } from '../../types';
-import type { IGameSettings, IGame } from '../../engine/game';
-import { EVENTS, DEFAULT_TIMER_VALUE_SEC, DEFAULT_MAX_SCORE_VALUE } from '../../constants';
-import { GameEngine } from '../../engine/game';
-import { Dictionary } from '../services/dictionary';
+import type { UserId, GameId, IPlayer, ISpectator, IUser, IWords } from '../types';
+import type { IGameSettings, IGame } from '../engine/game';
+import { EVENTS, DEFAULT_TIMER_VALUE_SEC, DEFAULT_MAX_SCORE_VALUE } from '../constants';
+import { GameEngine } from '../engine/game';
+import { Dictionary } from '../server/services/dictionary';
 
 export type ClientId = string;
 export type SessionId = string;
@@ -35,7 +35,7 @@ export interface IStartGamePayload extends IPayload {
 export interface INextTurnPayload extends IPayload {
 	gameId: GameId;
 	turn: {
-		words: IWord[];
+		words: IWords;
 		playerId: UserId;
 	};
 	secret: string;
@@ -119,6 +119,8 @@ export class Controller {
 
 				this.emitAll(EVENTS.UPDATE_GAME_LIST, this.gameIds);
 				ws.emit(EVENTS.CREATE_GAME, JSON.stringify({ gameId, game: game.getState() }));
+
+				game.start();
 			});
 
 			ws.on(EVENTS.JOIN_GAME, (payload: IJoinGamePayload) => {
@@ -173,6 +175,7 @@ export class Controller {
 		await dictionary.load();
 	
 		const game = new GameEngine(this.emit, gameSettings, user, dictionary);
+
 		const { id } = game;
 
 		this.subscribe(id, sessionId);

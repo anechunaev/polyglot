@@ -1,3 +1,5 @@
+@use '../../theme/palette.scss';
+
 $sectionMargin: 40px;
 
 .sidebar {
@@ -27,4 +29,12 @@ $sectionMargin: 40px;
 
 .searchInput {
     margin-top: $sectionMargin;
+}
+
+.activePlayerLabel {
+    display: block;
+    color: var(--color-grey-600);
+    line-height: 12px;
+    font-size: 10px;
+    margin-top: 4px;
 }

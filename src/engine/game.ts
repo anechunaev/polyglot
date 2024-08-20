@@ -38,6 +38,10 @@ export interface IState {
 		time: number;
 		total: number;
 	};
+	turn?: {
+		droppedLetters: Map<string, any>;
+		words: IWords
+	}
 }
 
 export interface IGame {

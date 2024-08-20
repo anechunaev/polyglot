@@ -396,6 +396,8 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		}
 	};
 
+
+	// @todo: унести на сервер
 	const updateFieldState = (lettersSet: Record<string, string>) => {
 		const field = [...game!.field];
 
@@ -428,6 +430,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 
 		}, {});
 
+		// @todo: унести на сервер
 		if (Object.keys(lettersPositionSet).length) {
 			updateFieldState(lettersPositionSet);
 		}

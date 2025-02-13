@@ -4,6 +4,7 @@ import type { IGameSettings, IGame } from '../engine/game';
 import { EVENTS, DEFAULT_TIMER_VALUE_SEC, DEFAULT_MAX_SCORE_VALUE } from '../constants';
 import { GameEngine } from '../engine/game';
 import { Dictionary } from '../server/services/dictionary';
+import type { EventBus } from './eventBus';
 
 export type ClientId = string;
 export type SessionId = string;
@@ -19,6 +20,7 @@ export interface IPayload {
 }
 
 export interface ICreateGamePayload extends IPayload {
+	sessionId: string;
 	settings: ISettings;
 	user: IUser;
 }
@@ -45,15 +47,13 @@ export interface Subscriptions {
 	[gameId: GameId]: ClientId[];
 }
 
-export interface SessionMap {
+export interface ActiveGameSessions {
 	[sessionId: SessionId]: GameId;
 }
 
 export interface Sessions {
 	[sessionId: SessionId]: Socket;
 }
-
-export type Emit = (gameId: GameId, eventName: keyof typeof EVENTS, payload: Record<string, any>) => void;
 
 export interface ISettings extends IGameSettings {
 	timer: number;
@@ -80,90 +80,72 @@ export class Controller {
 	};
 
 	private gameIds: GameId[];
-	private subscription: Subscriptions;
-	private sessions: Sessions;
-	private sessionMap: SessionMap;
-	private server: Server;
+	private eventBus: EventBus;
 
-	constructor(server: Server) {
+	constructor(eventBus: EventBus) {
 		this.games = {};
 		this.gameIds = [];
-		this.subscription = {};
-		this.sessions = {};
-		this.sessionMap = {};
+		this.eventBus = eventBus;
+	}
 
-		this.server = server;
-		this.emit = this.emit.bind(this);
+	public getGameState = (sessionId: SessionId) => {
+		const res: any = {};
 
-		this.server.on('connection', (ws: Socket) => {
-			const sessionId = ws.handshake.headers['x-session-id'];
+		Object.keys(this.games).forEach(gameId => {
+			const gameInstance = this.games[gameId].instance;
+			const { sessions } = gameInstance;
 
-			this.sessions[sessionId as string] = ws;
+			const activeSession = sessions.indexOf(sessionId);
 
-			console.log(`Client with session id ${sessionId} was connected`);
-
-			const activeGame = this.sessionMap[sessionId as string];
-
-			if (activeGame) {
-				const gameState = this.games[activeGame].instance.getState();
-
-				ws.emit(EVENTS.GAME_SESSION_RECONNECT, JSON.stringify({gameId: activeGame, game: gameState}));
+			if (activeSession !== -1) {
+				const gameState = gameInstance.getState();
+				res.gameId = gameId;
+				res.game = gameState;
 			}
-
-			ws.on(EVENTS.GET_CURRENT_USER, () => {
-				ws.emit(EVENTS.GET_CURRENT_USER, getCurrentUser());
-			});
-
-			ws.on(EVENTS.CREATE_GAME, async (payload: ICreateGamePayload) => {
-				const { game, gameId } = await this.createGame(payload.sessionId, payload);
-
-				this.emitAll(EVENTS.UPDATE_GAME_LIST, this.gameIds);
-				ws.emit(EVENTS.CREATE_GAME, JSON.stringify({ gameId, game: game.getState() }));
-
-				game.start();
-			});
-
-			ws.on(EVENTS.JOIN_GAME, (payload: IJoinGamePayload) => {
-				this.join(payload);
-			});
-
-			ws.on(EVENTS.GAME_START, (payload: IStartGamePayload) => {
-				this.games[payload.gameId].instance.start();
-			});
-
-			ws.on(EVENTS.ON_NEXT_TURN, (payload: INextTurnPayload) => {
-				this.games[payload.gameId].instance.nextTurn(payload.turn, payload.secret);
-			});
 		});
-	}
 
-	private subscribe(gameId: GameId, sessionId: SessionId) {
-		if (this.subscription[gameId]) {
-			this.subscription[gameId].push(sessionId);
-		} else {
-			this.subscription[gameId] = [sessionId];
-		}
-	}
+		return res;
+	};
 
-	private createGameSession(gameId: GameId, sessionId: SessionId) {
-		this.sessionMap[sessionId] = gameId;
-	}
+	public onCreateGame = async (payload: ICreateGamePayload) => {
+		const { game, gameId } = await this.createGame(payload.sessionId, payload);
 
-	public emit = (gameId: GameId, eventName: keyof typeof EVENTS, payload: Record<string, any>) => {
-		const sessionIds = this.subscription[gameId];
+		game.start();
 
-		sessionIds.forEach((sessionId) => {
-			const session = this.sessions[sessionId];
+		return { gameId, game: game.getState() };
 
-			session.emit(eventName, payload);
+	};
+
+	public onStartGame = (payload: IStartGamePayload) => {
+		this.games[payload.gameId].instance.start();
+	};
+
+	public onAddLetter = (sessionId: string, payload: any) => {
+		Object.keys(this.games).forEach(gameId => {
+			const gameInstance = this.games[gameId].instance;
+			const {sessions} = gameInstance;
+
+			console.log('-----sessions-----', sessions, sessionId);
+			if (sessions.indexOf(sessionId) !== -1) {
+				gameInstance.addLetter(payload);
+			}
 		});
 	};
 
-	private emitAll(eventName: keyof typeof EVENTS, payload: Record<string, any>) {
-		Object.keys(this.sessions).forEach((sessionId) => {
-			this.sessions[sessionId].emit(eventName, payload);
+	public onRemoveLetter = (sessionId: string, payload: any) => {
+		Object.keys(this.games).forEach(gameId => {
+			const gameInstance = this.games[gameId].instance;
+			const {sessions} = gameInstance;
+
+			if (sessions.indexOf(sessionId) !== -1) {
+				gameInstance.removeLetter(payload);
+			}
 		});
-	}
+	};
+
+	public onNextTurn = (payload: INextTurnPayload) => {
+		this.games[payload.gameId].instance.nextTurn(payload.turn, payload.secret);
+	};
 
 	private async createGame(sessionId: SessionId, { settings, user }: { settings: ISettings; user: IUser }) {
 		const gameSettings = {
@@ -173,13 +155,10 @@ export class Controller {
 
 		const dictionary = new Dictionary();
 		await dictionary.load();
-	
-		const game = new GameEngine(this.emit, gameSettings, user, dictionary);
+
+		const game = new GameEngine(this.eventBus, gameSettings, user, dictionary, sessionId);
 
 		const { id } = game;
-
-		this.subscribe(id, sessionId);
-		this.createGameSession(id, sessionId);
 
 		this.games[id] = {
 			instance: game,
@@ -195,11 +174,11 @@ export class Controller {
 	private canJoinGame(gameId: GameId) {
 		const game = this.games[gameId];
 		const players = game.instance.getPlayers().length;
-	
+
 		return !(game.max_players === players);
 	}
 
-	public join({ sessionId, params, user }: IJoinGamePayload) {
+	public onJoin({ sessionId, params, user }: IJoinGamePayload) {
 		const game = this.games[params.gameId];
 
 		if (!game) {
@@ -215,8 +194,7 @@ export class Controller {
 				return;
 			}
 
-			this.subscribe(params.gameId, sessionId);
-			game.instance.join(user, params.password);
+			game.instance.join(sessionId, user, params.password);
 		}
 	}
 }

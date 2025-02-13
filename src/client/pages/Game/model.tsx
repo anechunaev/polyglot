@@ -10,20 +10,23 @@ export interface IProps {
 }
 
 function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.ComponentType<IProps> {
+	// @todo: подключить шину событий в контроллере
 	function GameModel({ eventBus }: IProps) {
 		const [user, setUser] = React.useState<IUser | null>(null);
 		const [gameId, updateGameid] = React.useState<string>();
+		const [field, updateField] = React.useState<any>();
 		const [gameState, updateGameState] = React.useState<IGameState | null>(null);
 		const dispatch = useAppDispatch();
 
 		React.useEffect(() => {
-			eventBus.emit(EVENTS.GET_CURRENT_USER);
-		}, [eventBus]);
+			setUser({ id: '7301cf16-5e08-4019-bf84-734d3d73f7bd', name: 'jpig' });
+		}, []);
 
 		const loadGame = (payload: any) => {
-			const data: {game: IGameState; gameId: string} = JSON.parse(payload);
+			const data: { game: IGameState; gameId: string } = JSON.parse(payload);
 
 			updateGameState(() => ({ ...data.game }));
+			updateField(data.game.field);
 			updateGameid(data.gameId);
 
 			dispatch(updateLetters({ ...data.game.letters }));
@@ -49,10 +52,14 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 		);
 
 		eventBus.on(EVENTS.ON_TIMER_TICK,
-			React.useCallback((payload: ITimer) => {
-				dispatch(updateTimer(payload));
+			React.useCallback((payload: {data: ITimer}) => {
+				dispatch(updateTimer(payload.data));
 			}, [])
 		);
+
+		eventBus.on(EVENTS.UPDATE_FIELD, React.useCallback((payload: any) => {
+			updateField(payload.field);
+		}, []));
 
 		const onCreateGame = () => {
 			eventBus.emit(EVENTS.CREATE_GAME, {
@@ -63,11 +70,18 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			});
 		};
 
+		const onAddLetter = (payload: any) => {
+			eventBus.emit(EVENTS.ADD_LETTER, payload);
+		};
+		const onRemoveLetter = (payload: any) => {
+			eventBus.emit(EVENTS.REMOVE_LETTER, payload);
+		};
+
 		if (!user) {
 			return null;
 		}
 
-		return <View game={gameState} userId={user!.id} onCreateGame={onCreateGame} />;
+		return <View game={gameState} field={field} userId={user!.id} onCreateGame={onCreateGame} onAddLetter={onAddLetter} onRemoveLetter={onRemoveLetter} />;
 	}
 
 	GameModel.displayName = 'GameModel';

@@ -6,7 +6,7 @@ import withStyles from '../withStyles';
 import styles from './styles.scss';
 
 const DraggableLetter = Model(
-	withStyles(React.forwardRef<unknown, IProps & ILetterModelProps & IEncapsulatedProps>(View), styles),
+	withStyles(React.forwardRef<unknown, IProps & IEncapsulatedProps>(View), styles),
 );
 
 DraggableLetter.displayName = 'DraggableLetter';

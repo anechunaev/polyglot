@@ -11,13 +11,18 @@ export interface IEncapsulatedProps {
 
 export interface IProps {
 	isDragging?: boolean;
+	letterId: string;
 	letters: any; // вынести в редакс
 	style?: Record<string, string | undefined>;
 	attributes: DraggableAttributes;
 	listeners: SyntheticListenerMap | undefined;
+	isSelected?: boolean;
+	onClick?: (e?: React.SyntheticEvent) => void;
+	onRightClick?: (e?: React.SyntheticEvent) => void;
+	onDoubleClick?: (e?: React.SyntheticEvent) => void;
 }
 
-function DraggableLetter(props: React.PropsWithoutRef<IProps & ILetterModelProps & IEncapsulatedProps>, ref: any) {
+function DraggableLetter(props: React.PropsWithoutRef<IProps & IEncapsulatedProps>, ref: any) {
 	return (
 		<Letter
 			ref={ref}

@@ -1,10 +1,10 @@
 import uuid4 from 'uuid4';
-import type { Emit } from '../controller';
 import { ITimerInstance, Timer } from '../server/services/Timer';
 import type { ILettersService } from '../server/services/Letters';
 import type { IDictionary } from '../server/services/dictionary';
 import type { Letters, UserId, GameId, Field, IPlayer, ISpectator, IUser, IWords } from '../types';
 import { generateFieldSchema } from './helpers';
+import type { EventBus } from '../controller/eventBus';
 import {
 	EVENTS,
 	DEFAULT_TIMER_VALUE_SEC,
@@ -47,11 +47,14 @@ export interface IState {
 export interface IGame {
 	nextTurn: (turn: ITurn, secret: string) => void;
 	start: () => void;
-	emit: Emit;
+	eventBus: EventBus;
 	canJoin: (max_players: number) => boolean;
 	getPlayers: () => Array<string>;
-	join: (player: ISpectator | IPlayer, pwd?: string) => void;
+	join: (sessionId: string, player: ISpectator | IPlayer, pwd?: string) => void;
 	getState: () => IState;
+	sessions: string[];
+	addLetter: (payload: any) => void;
+	removeLetter: (payload: any) => void;
 }
 
 export class GameEngine implements IGame {
@@ -60,10 +63,10 @@ export class GameEngine implements IGame {
 	private letters: ILettersService;
 	public id: GameId;
 	private max_score: number;
-	public emit: Emit;
+	public eventBus: EventBus;
+	public sessions: string[];
 
-	constructor(emit: Emit, settings: IGameSettings, user: IUser, dictionary: IDictionary) {
-		console.log('---settings.timer -----', settings.timer );
+	constructor(eventBus: EventBus, settings: IGameSettings, user: IUser, dictionary: IDictionary, sessionId: string) {
 		const timer = new Timer(settings.timer || DEFAULT_TIMER_VALUE_SEC, this.onTimerTick, this.onTimerEnd);
 		const lettersService = new LettersService(letterConfig);
 		const initialWord = dictionary.getInitialWord();
@@ -84,17 +87,22 @@ export class GameEngine implements IGame {
 				time: settings.timer,
 				total: settings.timer,
 			},
+			turn: {
+				droppedLetters: new Map(),
+				words: {}
+			}
 		};
 
 		const letters = this.placeWordOnTheField(initialWord, lettersService.getLetters());
 
 		this.state.letters = letters;
+		this.sessions = [sessionId];
 
 		this.id = uuid4();
 		this.timer = timer;
 		this.letters = lettersService;
 		this.max_score = settings.max_score;
-		this.emit = emit;
+		this.eventBus = eventBus;
 
 	}
 
@@ -126,8 +134,22 @@ export class GameEngine implements IGame {
 
 	public calculateWordScore() { }
 
+	public addLetter(payload: any) {
+		// @todo: PLACE LETTER TO THE FIELD
+
+		this.state.field[0][0] = '111';
+
+		this.eventBus.emit(EVENTS.UPDATE_FIELD, {field: this.state.field, sessions: this.sessions});
+	}
+
+	public removeLetter(payload: any) {
+		this.state.field[0][0] = null;
+
+		this.eventBus.emit(EVENTS.UPDATE_FIELD, {field: this.state.field, sessions: this.sessions});
+	}
+
 	private placeWordOnTheField(word: string, letters: Letters) {
-		let newLetters = {...letters};
+		let newLetters = { ...letters };
 		const position = {
 			x: 4,
 			y: 7
@@ -143,7 +165,7 @@ export class GameEngine implements IGame {
 				if (letter.value === wordLetter) {
 					if (letter.located.in === 'stock') {
 						const top = position.y;
-						const left =  position.x + i;
+						const left = position.x + i;
 						newLetters = {
 							...newLetters,
 							[letterId]: {
@@ -248,11 +270,11 @@ export class GameEngine implements IGame {
 			this.finish(player);
 		}
 
-		this.emit(this.id, EVENTS.ON_NEXT_TURN, this.state);
+		this.eventBus.emit(EVENTS.ON_NEXT_TURN, { gameId: this.id, data: this.state, sessions: this.sessions });
 	}
 
 	public onTimerTick = (time: number, total: number) => {
-		this.emit(this.id, EVENTS.ON_TIMER_TICK, { time, total });
+		this.eventBus.emit(EVENTS.ON_TIMER_TICK, { gameId: this.id, data: { time, total }, sessions: this.sessions });
 	};
 
 	public getState() {
@@ -260,18 +282,20 @@ export class GameEngine implements IGame {
 	}
 
 	public finish(player?: IPlayer) {
-		this.emit(this.id, EVENTS.ON_FINISH_GAME, { winner: { name: player?.name, score: player?.score } });
+		this.eventBus.emit(EVENTS.ON_FINISH_GAME, { gameId: this.id, data: { winner: { name: player?.name, score: player?.score } }, sessions: this.sessions });
 	}
 
 	public canJoin(max_players: number) {
 		return !(max_players === Object.keys(this.state.players).length);
 	}
 
-	public join(user: ISpectator | IPlayer) {
+	public join(sessionId: string, user: ISpectator | IPlayer) {
 		if (user.role === ROLES.SPECTATOR) {
 			this.state.spectators.push(user);
 		} else {
 			this.state.players[user.id] = user;
 		}
+
+		this.sessions.push(sessionId);
 	}
 }

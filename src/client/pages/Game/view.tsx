@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { h32 } from 'xxhashjs';
-import { DndContext, MouseSensor, useSensor, useSensors, DragEndEvent, DragStartEvent } from '@dnd-kit/core';
+import { DndContext, MouseSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, UniqueIdentifier } from '@dnd-kit/core';
 import type { IProps as ICellProps } from '../../components/Cell/view';
 import type { IGameState, UserId, IWords } from '../../../types';
 import { PLAYER_DEFAULT_LETTERS_COUNT } from '../../../constants';
@@ -27,13 +27,15 @@ export interface IProps {
 	classes: Record<string, string>;
 	game: IGameState | null;
 	userId: UserId;
+	field: any;
 	onCreateGame: () => void;
+	onAddLetter: (payload: {letterId: string, position: {x: number; y: number}, cellId: UniqueIdentifier}) => void;
+	onRemoveLetter: (payload: {letterId: string}) => void;
 }
 
-function GamePage({ game, onCreateGame, userId, classes }: IProps) {
+function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onRemoveLetter }: IProps) {
 	const [droppedLetters, dropLetters] = React.useState<Map<string, any>>(new Map());
 	const [selectedLetters, setSelectedLetters] = React.useState<string[]>([]);
-	const [field, updateField] = React.useState<(string | null)[][]>([[]]);
 	const [words, updateWords] = React.useState<IWords>({});
 
 	const mouseSensor = useSensor(MouseSensor, {
@@ -58,7 +60,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 			if (up) {
 				--position[axis];
 
-				const data = game!.field[position.y][position.x];
+				const data = field[position.y][position.x];
 				const isLetter = data && !isNaN(Number(data));
 
 				if (!isLetter) {
@@ -77,7 +79,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 
 			++position[axis];
 
-			const data = game!.field[position.y][position.x];
+			const data = field[position.y][position.x];
 			const isLetter = data && !isNaN(Number(data));
 
 			if (!isLetter) {
@@ -198,7 +200,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		}, {});
 
 		return data;
-	
+
 	}
 
 	const toogleSelected = (id: string) => {
@@ -233,52 +235,65 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 	};
 
 	const moveLetterBackTo = (id: string, initialPosition: { x: number; y: number }) => {
-		const droppedLetter = droppedLetters.get(id);
-		const { position } = droppedLetter;
+		// const droppedLetter = droppedLetters.get(id);
+		// const { position } = droppedLetter;
 
-		if (droppedLetter?.fieldCell) {
-			// updateField(field => {
-			// 	// @TODO: подставить дефолтное значение ячейки
-			// 	field[position.y][position.x] = null;
+		// if (droppedLetter?.fieldCell) {
+		// 	// updateField(field => {
+		// 	// 	// @TODO: подставить дефолтное значение ячейки
+		// 	// 	field[position.y][position.x] = null;
 
-			// 	return field;
-			// });
+		// 	// 	return field;
+		// 	// });
 
-			// костыль из-за вонючего реакта: тут ждем пока состояние поля обновится
-			setTimeout(() => {
-				dropLetters((state) => {
-					state.set(id, {
-						fieldCell: null,
-						position: {
-							top: initialPosition.y,
-							left: initialPosition.x,
-						}
-					});
+		// 	// костыль из-за вонючего реакта: тут ждем пока состояние поля обновится
+		// 	setTimeout(() => {
+		// 		dropLetters((state) => {
+		// 			state.set(id, {
+		// 				fieldCell: null,
+		// 				position: {
+		// 					top: initialPosition.y,
+		// 					left: initialPosition.x,
+		// 				}
+		// 			});
 
-					state.delete(id);
+		// 			state.delete(id);
+		// 			// onMoveLetter({
+		// 			// 	id,
+		// 			// 	data: {
+		// 			// 		fieldCell: null,
+		// 			// 		position: {
+		// 			// 			top: initialPosition.y,
+		// 			// 			left: initialPosition.x,
+		// 			// 		}
 
-					updateWords(() => ({}));
+		// 			// 	}
+		// 			// })
 
-					const data: IWords = [...state.keys()].reduce((acc, droppedLetterId) => {
-						const letter = state.get(droppedLetterId);
 
-						if (Object.keys(acc).length) {
-							const { changedWords } = updateCurrentWords(acc, droppedLetterId, letter.position);
-							const newWords = makeNewWords(droppedLetterId, letter.position);
-							acc = { ...changedWords, ...newWords };
-						} else {
-							const newWords = makeNewWords(droppedLetterId, letter.position);
-							acc = { ...newWords };
-						}
 
-						return acc;
-					}, {});
-					updateWords(() => ({ ...data }));
+		// 			updateWords(() => ({}));
 
-					return state;
-				});
-			}, 0);
-		}
+		// 			const data: IWords = [...state.keys()].reduce((acc, droppedLetterId) => {
+		// 				const letter = state.get(droppedLetterId);
+
+		// 				if (Object.keys(acc).length) {
+		// 					const { changedWords } = updateCurrentWords(acc, droppedLetterId, letter.position);
+		// 					const newWords = makeNewWords(droppedLetterId, letter.position);
+		// 					acc = { ...changedWords, ...newWords };
+		// 				} else {
+		// 					const newWords = makeNewWords(droppedLetterId, letter.position);
+		// 					acc = { ...newWords };
+		// 				}
+
+		// 				return acc;
+		// 			}, {});
+		// 			updateWords(() => ({ ...data }));
+
+		// 			return state;
+		// 		});
+		// 	}, 0);
+		// }
 	}
 
 	const handleRightClick = (id: string, initialPosition: { x: number; y: number }, e: React.SyntheticEvent) => {
@@ -287,6 +302,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 		const droppedLetter = droppedLetters.get(id);
 
 		if (droppedLetter?.fieldCell) {
+			onRemoveLetter({letterId: id});
 			moveLetterBackTo(id, initialPosition);
 		} else {
 			toogleSelected(id);
@@ -319,11 +335,11 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 						const data: IWords = generateWords(state);
 
 						console.log('-----DATA-----', data);
-		
+
 						updateWords(() => ({ ...data }));
-	
+
 						return state;
-	
+
 					});
 				}, 0);
 
@@ -345,20 +361,22 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 
 		const letter = game!.letters[letterId];
 
+		console.log('----handleDragEnd----', over, active);
+
 		if (over) {
 			let prevPosition: { x: number; y: number };
 			if (letter.located.in === 'field') {
 				prevPosition = { ...letter.located.position };
-				console.log('-----PREVIOUS POSITION-----', prevPosition);
 			}
 
 			const { position } = over.data.current as any;
-			console.log('-------NEW POSITION--------', position);
 
 			letter.located = {
 				in: 'field',
 				position,
 			};
+
+			onAddLetter({letterId, position, cellId: over.id});
 
 			// updateField(field => {
 			// 	field[position.y][position.x] = letterId;
@@ -383,7 +401,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 					const data: IWords = generateWords(state);
 
 					console.log('-----DATA-----', data);
-	
+
 					updateWords(() => ({ ...data }));
 
 					return state;
@@ -422,7 +440,7 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 							letterId={letterId}
 							onClick={() => toogleSelected(letterId)}
 							onRightClick={(e: any) => handleRightClick(letterId, initialPosition, e)}
-							onDoubleClick={() => moveLetterBackTo(letterId, initialPosition)}
+							onDoubleClick={() => {moveLetterBackTo(letterId, initialPosition); onRemoveLetter({letterId})}}
 						/>
 					);
 				})}
@@ -461,12 +479,12 @@ function GamePage({ game, onCreateGame, userId, classes }: IProps) {
 	}
 
 	console.log('----RERENDER-----');
-	
+
 	return (
 		<div className={classes.game}>
 			<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={sensors}>
 				<Field>
-					{(game?.field as ICellProps['bonus'][][]).map((row, index) => (
+					{(field as ICellProps['bonus'][][]).map((row, index) => (
 						<div
 							key={h32(`${JSON.stringify(row) + index}row`, 0xabcd).toString()}
 							style={{ width: '614px', gap: '1px', display: 'flex', margin: 0 }}

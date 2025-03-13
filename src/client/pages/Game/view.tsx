@@ -29,8 +29,8 @@ export interface IProps {
 	userId: UserId;
 	field: any;
 	onCreateGame: () => void;
-	onAddLetter: (payload: {letterId: string, position: {x: number; y: number}, cellId: UniqueIdentifier}) => void;
-	onRemoveLetter: (payload: {letterId: string}) => void;
+	onAddLetter: (payload: { letterId: string, position: { x: number; y: number }, cellId: UniqueIdentifier }) => void;
+	onRemoveLetter: (payload: { letterId: string }) => void;
 }
 
 function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onRemoveLetter }: IProps) {
@@ -234,7 +234,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 		}
 	};
 
-	const moveLetterBackTo = (id: string, initialPosition: { x: number; y: number }) => {
+	const moveLetterBackTo = (id: string) => {
 		// const droppedLetter = droppedLetters.get(id);
 		// const { position } = droppedLetter;
 
@@ -296,14 +296,14 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 		// }
 	}
 
-	const handleRightClick = (id: string, initialPosition: { x: number; y: number }, e: React.SyntheticEvent) => {
+	const handleRightClick = (id: string, e: React.SyntheticEvent) => {
 		e.preventDefault();
 
 		const droppedLetter = droppedLetters.get(id);
 
 		if (droppedLetter?.fieldCell) {
-			onRemoveLetter({letterId: id});
-			moveLetterBackTo(id, initialPosition);
+			onRemoveLetter({ letterId: id });
+			// moveLetterBackTo(id, initialPosition);
 		} else {
 			toogleSelected(id);
 		}
@@ -376,7 +376,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 				position,
 			};
 
-			onAddLetter({letterId, position, cellId: over.id});
+			onAddLetter({ letterId, position, cellId: over.id });
 
 			// updateField(field => {
 			// 	field[position.y][position.x] = letterId;
@@ -392,8 +392,8 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 					state.set(letterId, {
 						fieldCell: over.id,
 						position: {
-							top: calculatePosition(FIELD_POSITION_START_Y, position.y),
-							left: calculatePosition(FIELD_POSITION_START_X, position.x),
+							// top: calculatePosition(FIELD_POSITION_START_Y, position.y),
+							// left: calculatePosition(FIELD_POSITION_START_X, position.x),
 							x: position.x,
 							y: position.y
 						},
@@ -410,7 +410,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 		} else {
 			const { initialPosition } = active.data.current as any;
 			letter.located.in = 'player';
-			moveLetterBackTo(letterId, initialPosition);
+			moveLetterBackTo(letterId);
 		}
 	};
 
@@ -431,16 +431,16 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 						<DraggableLetter
 							key={h32(letterId, 0xabcd).toString()}
 							styles={{
-								top: droppedLetterPosition ? droppedLetterPosition.top : LETTERS_POSITION_START_Y,
-								left: droppedLetterPosition ? droppedLetterPosition.left : posLeft,
+								top: LETTERS_POSITION_START_Y,
+								left: posLeft,
 							}}
-							initialPosition={initialPosition}
+							// initialPosition={initialPosition}
 							letters={game?.letters}
 							isSelected={selectedLetters.includes(letterId)}
 							letterId={letterId}
 							onClick={() => toogleSelected(letterId)}
-							onRightClick={(e: any) => handleRightClick(letterId, initialPosition, e)}
-							onDoubleClick={() => {moveLetterBackTo(letterId, initialPosition); onRemoveLetter({letterId})}}
+							onRightClick={(e: any) => handleRightClick(letterId, e)}
+							onDoubleClick={() => { moveLetterBackTo(letterId); onRemoveLetter({ letterId }) }}
 						/>
 					);
 				})}
@@ -459,20 +459,35 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 
 	console.log('---------words--------', words);
 
-	const renderLetter = (letterId: string) => {
+	const renderLetter = (letterId: string, isCurrentTurn: boolean) => {
 		const letter = game?.letters[letterId] as unknown as any;
 
 		console.log('------LETTER-------', letter);
 
 		// return null;
 
+		if (isCurrentTurn) {
+			return (
+				<DraggableLetter
+				key={h32(letterId, 0xabcd).toString()}
+				// styles={{
+				// 	top: LETTERS_POSITION_START_Y,
+				// 	left: posLeft,
+				// }}
+				// initialPosition={initialPosition}
+				letters={game?.letters}
+				isSelected={selectedLetters.includes(letterId)}
+				letterId={letterId}
+				onClick={() => toogleSelected(letterId)}
+				onRightClick={(e: any) => handleRightClick(letterId, e)}
+				/>
+				
+			)
+		}
+
 		return (
 			<Letter
 				key={h32(letterId, 0xabcd).toString()}
-				position={{
-					top: calculatePosition(FIELD_POSITION_START_Y, letter.located.position.y),
-					left: calculatePosition(FIELD_POSITION_START_X, letter.located.position.x),
-				}}
 				letterId={letterId}
 			/>
 		);
@@ -505,6 +520,12 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 									},
 								);
 
+								const isCurrentTurn = !!field.isCurrentTurn;
+
+								console.log('---isCurrentTurn----', isCurrentTurn);
+
+								
+
 								return (
 									<DroppableCell
 										id={id}
@@ -515,7 +536,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 										bonus={value && !isLetterId ? value : null}
 										onClick={() => onCellClick(id, position)}
 									>
-										{isLetterId && createPortal(renderLetter(value as unknown as string), document.body)}
+										{isLetterId && renderLetter(value as unknown as string, isCurrentTurn)}
 									</DroppableCell>
 								);
 							})}

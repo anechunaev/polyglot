@@ -1,5 +1,5 @@
 import { Server, Socket } from 'socket.io';
-import type { UserId, GameId, IPlayer, ISpectator, IUser, IWords } from '../types';
+import type { UserId, GameId, IPlayer, ISpectator, IUser, IWords, IAddLetter, IRemoveLetter } from '../types';
 import type { IGameSettings, IGame } from '../engine/game';
 import { EVENTS, DEFAULT_TIMER_VALUE_SEC, DEFAULT_MAX_SCORE_VALUE } from '../constants';
 import { GameEngine } from '../engine/game';
@@ -120,12 +120,11 @@ export class Controller {
 		this.games[payload.gameId].instance.start();
 	};
 
-	public onAddLetter = (sessionId: string, payload: any) => {
+	public onAddLetter = (sessionId: string, payload: IAddLetter) => {
 		Object.keys(this.games).forEach(gameId => {
 			const gameInstance = this.games[gameId].instance;
-			const {sessions} = gameInstance;
+			const { sessions } = gameInstance;
 
-			console.log('-----sessions-----', sessions, sessionId);
 			if (sessions.indexOf(sessionId) !== -1) {
 				gameInstance.addLetter(payload);
 			}
@@ -135,7 +134,7 @@ export class Controller {
 	public onRemoveLetter = (sessionId: string, payload: any) => {
 		Object.keys(this.games).forEach(gameId => {
 			const gameInstance = this.games[gameId].instance;
-			const {sessions} = gameInstance;
+			const { sessions } = gameInstance;
 
 			if (sessions.indexOf(sessionId) !== -1) {
 				gameInstance.removeLetter(payload);

@@ -2,7 +2,7 @@ import uuid4 from 'uuid4';
 import { ITimerInstance, Timer } from '../server/services/Timer';
 import type { ILettersService } from '../server/services/Letters';
 import type { IDictionary } from '../server/services/dictionary';
-import type { Letters, UserId, GameId, Field, IPlayer, ISpectator, IUser, IWords } from '../types';
+import type { Letters, UserId, GameId, Field, IPlayer, ISpectator, IUser, IWords, IAddLetter, IRemoveLetter } from '../types';
 import { generateFieldSchema } from './helpers';
 import type { EventBus } from '../controller/eventBus';
 import {
@@ -53,14 +53,15 @@ export interface IGame {
 	join: (sessionId: string, player: ISpectator | IPlayer, pwd?: string) => void;
 	getState: () => IState;
 	sessions: string[];
-	addLetter: (payload: any) => void;
-	removeLetter: (payload: any) => void;
+	addLetter: (payload: IAddLetter) => void;
+	removeLetter: (payload: IRemoveLetter) => void;
 }
 
 export class GameEngine implements IGame {
 	private state: IState;
 	private timer: ITimerInstance;
 	private letters: ILettersService;
+	private _defaultField: Field;
 	public id: GameId;
 	private max_score: number;
 	public eventBus: EventBus;
@@ -70,6 +71,9 @@ export class GameEngine implements IGame {
 		const timer = new Timer(settings.timer || DEFAULT_TIMER_VALUE_SEC, this.onTimerTick, this.onTimerEnd);
 		const lettersService = new LettersService(letterConfig);
 		const initialWord = dictionary.getInitialWord();
+
+		const field = generateFieldSchema();
+		this._defaultField = field;
 
 		this.state = {
 			activePlayer: user.id,
@@ -82,7 +86,7 @@ export class GameEngine implements IGame {
 				},
 			},
 			spectators: [],
-			field: generateFieldSchema(),
+			field,
 			timer: {
 				time: settings.timer,
 				total: settings.timer,
@@ -134,18 +138,28 @@ export class GameEngine implements IGame {
 
 	public calculateWordScore() { }
 
-	public addLetter(payload: any) {
+	public addLetter(payload: IAddLetter) {
 		// @todo: PLACE LETTER TO THE FIELD
 
-		this.state.field[0][0] = '111';
+		const { position, letterId } = payload;
 
-		this.eventBus.emit(EVENTS.UPDATE_FIELD, {field: this.state.field, sessions: this.sessions});
+		this.state.field[position.y][position.x] = letterId;
+
+		this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
 	}
 
-	public removeLetter(payload: any) {
+	public removeLetter({letterId}: IRemoveLetter) {
+		this.state.field.forEach((row, rowIndex) => {
+			row.forEach((cellContent, cellIndex) => {
+				if (cellContent === letterId) {
+					this.state.field[rowIndex][cellIndex] = this._defaultField[rowIndex][cellIndex];
+				}
+			})
+		});
+
 		this.state.field[0][0] = null;
 
-		this.eventBus.emit(EVENTS.UPDATE_FIELD, {field: this.state.field, sessions: this.sessions});
+		this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
 	}
 
 	private placeWordOnTheField(word: string, letters: Letters) {

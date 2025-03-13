@@ -6,6 +6,18 @@ export type GameId = string;
 
 export type ISearchParam = string;
 
+export interface IAddLetter {
+	letterId: string;
+	position: {
+		x: number,
+		y: number
+	}
+}
+
+export interface IRemoveLetter {
+	letterId: string;
+}
+
 export interface ITimer {
     time: number;
     total: number;

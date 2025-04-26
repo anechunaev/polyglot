@@ -324,6 +324,8 @@ export class GameEngine implements IGame {
 			})
 		});
 
+		this.generateWords();
+
 		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, {dropppedLetters: this.state.turn?.droppedLetters, sessions: this.sessions});
 		this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
 	}

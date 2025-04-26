@@ -61,7 +61,6 @@ export class GameEngine implements IGame {
 	private state: IState;
 	private timer: ITimerInstance;
 	private letters: ILettersService;
-	private _defaultField: Field;
 	public id: GameId;
 	private max_score: number;
 	public eventBus: EventBus;
@@ -71,9 +70,7 @@ export class GameEngine implements IGame {
 		const timer = new Timer(settings.timer || DEFAULT_TIMER_VALUE_SEC, this.onTimerTick, this.onTimerEnd);
 		const lettersService = new LettersService(letterConfig);
 		const initialWord = dictionary.getInitialWord();
-
 		const field = generateFieldSchema();
-		this._defaultField = field;
 
 		this.state = {
 			activePlayer: user.id,
@@ -139,12 +136,10 @@ export class GameEngine implements IGame {
 	public calculateWordScore() { }
 
 	public addLetter(payload: IAddLetter) {
-		// @todo: PLACE LETTER TO THE FIELD
-
 		const { position, letterId } = payload;
 
 		this.state.field[position.y][position.x] = letterId;
-
+		
 		this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
 	}
 
@@ -152,12 +147,11 @@ export class GameEngine implements IGame {
 		this.state.field.forEach((row, rowIndex) => {
 			row.forEach((cellContent, cellIndex) => {
 				if (cellContent === letterId) {
-					this.state.field[rowIndex][cellIndex] = this._defaultField[rowIndex][cellIndex];
+					console.log('------REMOVE LETTER----- ', letterId, generateFieldSchema()[rowIndex][cellIndex]);
+					this.state.field[rowIndex][cellIndex] = generateFieldSchema()[rowIndex][cellIndex];
 				}
 			})
 		});
-
-		this.state.field[0][0] = null;
 
 		this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
 	}

@@ -14,11 +14,6 @@ export interface IProps {
 	onDoubleClick?: (e?: React.SyntheticEvent) => void;
 	disabled?: boolean;
 	letterId: string;
-	letters: any; // вынести в редакс
-	// initialPosition: {
-	// 	x: number;
-	// 	y: number;
-	// };
 }
 
 function Model(
@@ -28,9 +23,6 @@ function Model(
 		const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
 			id: props.letterId || '',
 			disabled: props.disabled,
-			// data: {
-			// 	initialPosition: props.initialPosition,
-			// },
 		});
 
 		const style = {

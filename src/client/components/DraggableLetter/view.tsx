@@ -12,7 +12,7 @@ export interface IEncapsulatedProps {
 export interface IProps {
 	isDragging?: boolean;
 	letterId: string;
-	letters: any; // вынести в редакс
+	// letters: any; // вынести в редакс
 	style?: Record<string, string | undefined>;
 	attributes: DraggableAttributes;
 	listeners: SyntheticListenerMap | undefined;
@@ -26,7 +26,6 @@ function DraggableLetter(props: React.PropsWithoutRef<IProps & IEncapsulatedProp
 	return (
 		<Letter
 			ref={ref}
-			letters={props.letters}
 			letterId={props.letterId}
 			onClick={props.onClick}
 			onDoubleClick={props.onDoubleClick}

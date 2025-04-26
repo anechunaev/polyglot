@@ -46,6 +46,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 
 	const sensors = useSensors(mouseSensor);
 
+	//@TODO: вынести на сервер
 	const makeWord = (letterId: string, startPosition: { x: number; y: number }, axis: 'y' | 'x') => {
 		const letters = [letterId];
 		const topLimit = 0;
@@ -107,7 +108,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 
 		return result;
 	}
-
+	//@TODO: вынести на сервер
 	const makeNewWords = (letterId: string, position: { x: number; y: number }) => {
 		const verticalWord = makeWord(letterId, position, 'y');
 		const horizontalWord = makeWord(letterId, position, 'x');
@@ -134,6 +135,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 
 		return response;
 	}
+	//@TODO: вынести на сервер
 	const updateCurrentWords = (data: IWords, letterId: string, position: { x: number; y: number }) => {
 		const newLetterPosition = `${position.x};${position.y}`;
 
@@ -182,7 +184,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 
 		return { changedWords: newWords };
 	}
-
+	//@TODO: вынести на сервер
 	const generateWords = (items: Map<string, any>) => {
 		const data: IWords = [...items.keys()].reduce((acc, droppedLetterId) => {
 			const letter = items.get(droppedLetterId);
@@ -314,12 +316,6 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 			if (selectedLetters.length) {
 				const letterId = selectedLetters[0];
 
-				// updateField(field => {
-				// 	field[pos.y][pos.x] = letterId;
-
-				// 	return field;
-				// });
-
 				setTimeout(() => {
 					dropLetters((state) => {
 						state.set(letterId, {
@@ -358,10 +354,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 
 	const handleDragEnd = ({ over, active }: DragEndEvent) => {
 		const letterId = active.id as string;
-
 		const letter = game!.letters[letterId];
-
-		console.log('----handleDragEnd----', over, active);
 
 		if (over) {
 			let prevPosition: { x: number; y: number };
@@ -377,15 +370,6 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 			};
 
 			onAddLetter({ letterId, position, cellId: over.id });
-
-			// updateField(field => {
-			// 	field[position.y][position.x] = letterId;
-			// 	if (prevPosition) {
-			// 		// @TODO: set default cell value
-			// 		field[prevPosition.y][prevPosition.x] = null;
-			// 	}
-			// 	return field;
-			// });
 
 			setTimeout(() => {
 				dropLetters((state) => {
@@ -423,10 +407,10 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 					const droppedLetterPosition = droppedLetter?.position;
 					const posLeft = calculatePosition(LETTERS_POSITION_START_X, i);
 
-					const initialPosition = {
-						y: LETTERS_POSITION_START_Y,
-						x: posLeft,
-					};
+					if (droppedLetter) {
+						return null;
+					}
+
 					return (
 						<DraggableLetter
 							key={h32(letterId, 0xabcd).toString()}
@@ -434,8 +418,6 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 								top: LETTERS_POSITION_START_Y,
 								left: posLeft,
 							}}
-							// initialPosition={initialPosition}
-							letters={game?.letters}
 							isSelected={selectedLetters.includes(letterId)}
 							letterId={letterId}
 							onClick={() => toogleSelected(letterId)}
@@ -470,12 +452,6 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 			return (
 				<DraggableLetter
 				key={h32(letterId, 0xabcd).toString()}
-				// styles={{
-				// 	top: LETTERS_POSITION_START_Y,
-				// 	left: posLeft,
-				// }}
-				// initialPosition={initialPosition}
-				letters={game?.letters}
 				isSelected={selectedLetters.includes(letterId)}
 				letterId={letterId}
 				onClick={() => toogleSelected(letterId)}

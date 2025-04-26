@@ -127,7 +127,7 @@ export class GameEngine implements IGame {
 	private generateWords = () => {
 		const data: IWords = this.state.turn!.droppedLetters.reduce((acc, droppedLetterId) => {
 		
-		let position = {y: 0, x: 0};
+		const position = {y: 0, x: 0};
 		for (let i = 0; i < this.state.field.length; i++) {
 			for (let j = 0; j < this.state.field[i].length; j++) {
 				if (this.state.field[i][j] === droppedLetterId) {

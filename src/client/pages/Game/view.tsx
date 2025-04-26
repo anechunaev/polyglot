@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { h32 } from 'xxhashjs';
 import { DndContext, MouseSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, UniqueIdentifier } from '@dnd-kit/core';
 import type { IProps as ICellProps } from '../../components/Cell/view';
-import type { IGameState, UserId, IWords } from '../../../types';
+import type { IGameState, UserId, IWords, Field as IField } from '../../../types';
 import { PLAYER_DEFAULT_LETTERS_COUNT } from '../../../constants';
 import Sidebar from '../../components/Sidebar';
 import Field from '../../components/Field';
@@ -103,8 +103,6 @@ function GamePage({ game, field, fieldLetters, onCreateGame, userId, classes, on
 				kind: axis === 'y' ? 'vertical' : 'horizontal'
 			}
 		}
-
-		console.log('-----makeWord------', result);
 
 		return result;
 	}
@@ -261,6 +259,10 @@ function GamePage({ game, field, fieldLetters, onCreateGame, userId, classes, on
 				position,
 			};
 
+			if (fieldLetters.includes(letterId)) {
+				onRemoveLetter({letterId});
+			}
+
 			onAddLetter({ letterId, position, cellId: over.id });
 		} else {
 			onRemoveLetter({letterId: active.id as string});
@@ -270,24 +272,33 @@ function GamePage({ game, field, fieldLetters, onCreateGame, userId, classes, on
 	const renderPlayerLetters = () => {
 		const playerLetters = game?.players[userId].letters;
 
-		// МЕНЯЕМ ПОЗИЦИЮ БУКВЫ В ЗАВИСИМОСТИ ОТ ТОГО, БЫЛА ОНА ПЕРЕМЕЩЕНА В ТЕКУЩЕМ ХОЖУ ИЛИ НЕТ
-
 		return (
 			<div className={classes.lettersContainer}>
 				{playerLetters?.map((letterId, i) => {
 					const posLeft = calculatePosition(LETTERS_POSITION_START_X, i);
 
-					console.log('-----PLAYER LETTER ID-------', letterId);
+					let position: {top: number, left: number} = {
+						top: LETTERS_POSITION_START_Y,
+						left: posLeft,
+					};
+
 					if (fieldLetters.includes(letterId)) {
-						return null;
+						(field as IField).forEach((row, rowIndex) => {
+							row.forEach((cell, cellIndex) => {
+								if (cell === letterId) {
+									position.top = calculatePosition(FIELD_POSITION_START_Y, rowIndex);
+									position.left = calculatePosition(FIELD_POSITION_START_X, cellIndex);
+								}
+							});
+						})
 					}
 
 					return (
 						<DraggableLetter
 							key={h32(letterId, 0xabcd).toString()}
 							styles={{
-								top: LETTERS_POSITION_START_Y,
-								left: posLeft,
+								top: position.top,
+								left: position.left,
 							}}
 							isSelected={selectedLetters.includes(letterId)}
 							letterId={letterId}
@@ -313,21 +324,9 @@ function GamePage({ game, field, fieldLetters, onCreateGame, userId, classes, on
 
 	const renderLetter = (letterId: string) => {
 		const letter = game?.letters[letterId] as unknown as any;
-		// return null;
-
-		console.log('--fieldLetters-----', fieldLetters, letterId);
 
 		if (fieldLetters.includes(letterId)) {
-			return (
-				<DraggableLetter
-					key={h32(letterId, 0xabcd).toString()}
-					isSelected={selectedLetters.includes(letterId)}
-					letterId={letterId}
-					onClick={() => toogleSelected(letterId)}
-					onRightClick={(e: any) => handleRightClick(letterId, e)}
-				/>
-				
-			)
+			return null;
 		}
 
 		return (
@@ -336,12 +335,6 @@ function GamePage({ game, field, fieldLetters, onCreateGame, userId, classes, on
 				letterId={letterId}
 			/>
 		);
-	}
-
-	console.log('----RERENDER-----');
-
-	const renderFieldLetter = () => {
-		// меняем позицию у нужной буквы?
 	}
 
 	return (

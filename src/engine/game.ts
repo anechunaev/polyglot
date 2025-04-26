@@ -144,7 +144,6 @@ export class GameEngine implements IGame {
 		this.state.field.forEach((row, rowIndex) => {
 			row.forEach((cellContent, cellIndex) => {
 				if (cellContent === letterId) {
-					console.log('------REMOVE LETTER----- ', letterId, generateFieldSchema()[rowIndex][cellIndex]);
 					this.state.field[rowIndex][cellIndex] = generateFieldSchema()[rowIndex][cellIndex];
 				}
 			})

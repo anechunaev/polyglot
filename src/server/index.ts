@@ -94,7 +94,11 @@ eventBus.on(EVENTS.UPDATE_FIELD, payload => {
 
 eventBus.on(EVENTS.UPDATE_TURN_FIELD, payload => {
 	emitAll(EVENTS.UPDATE_TURN_FIELD, payload);
-})
+});
+
+eventBus.on(EVENTS.UPDATE_TURN_LETTERS, payload => {
+	emitAll(EVENTS.UPDATE_TURN_LETTERS, payload);
+});
 
 io.use(connect(controller));
 

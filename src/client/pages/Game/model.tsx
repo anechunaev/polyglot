@@ -15,6 +15,7 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 		const [user, setUser] = React.useState<IUser | null>(null);
 		const [gameId, updateGameid] = React.useState<string>();
 		const [field, updateField] = React.useState<any>();
+		const [fieldLetters, updateFieldLetters] = React.useState<string[]>([]);
 		const [gameState, updateGameState] = React.useState<IGameState | null>(null);
 		const dispatch = useAppDispatch();
 
@@ -27,6 +28,7 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 
 			updateGameState(() => ({ ...data.game }));
 			updateField(data.game.field);
+			updateFieldLetters(data.game.turn.droppedLetters)
 			updateGameid(data.gameId);
 
 			dispatch(updateLetters({ ...data.game.letters }));
@@ -62,11 +64,11 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 		}, []));
 
 		eventBus.on(EVENTS.UPDATE_TURN_FIELD, React.useCallback((payload: any) => {
-			const currentTurnField = [...payload.field];
+			updateField(payload.field);
+		}, []));
 
-			(currentTurnField as any).isCurrentTurn = true;
-
-			updateField(currentTurnField);
+		eventBus.on(EVENTS.UPDATE_TURN_LETTERS, React.useCallback((payload: any) => {
+			updateFieldLetters(payload.dropppedLetters);
 		}, []));
 
 		const onCreateGame = () => {
@@ -89,7 +91,7 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			return null;
 		}
 
-		return <View game={gameState} field={field} userId={user!.id} onCreateGame={onCreateGame} onAddLetter={onAddLetter} onRemoveLetter={onRemoveLetter} />;
+		return <View game={gameState} fieldLetters={fieldLetters} field={field} userId={user!.id} onCreateGame={onCreateGame} onAddLetter={onAddLetter} onRemoveLetter={onRemoveLetter} />;
 	}
 
 	GameModel.displayName = 'GameModel';

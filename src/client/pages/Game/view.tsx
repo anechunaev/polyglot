@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { h32 } from 'xxhashjs';
 import { DndContext, MouseSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, UniqueIdentifier } from '@dnd-kit/core';
 import type { IProps as ICellProps } from '../../components/Cell/view';
-import type { IGameState, UserId, IWords } from '../../../types';
+import type { IGameState, UserId, IWords, Field as IField } from '../../../types';
 import { PLAYER_DEFAULT_LETTERS_COUNT } from '../../../constants';
 import Sidebar from '../../components/Sidebar';
 import Field from '../../components/Field';
@@ -28,36 +28,21 @@ export interface IProps {
 	game: IGameState | null;
 	userId: UserId;
 	field: any;
+	fieldLetters: string[];
 	onCreateGame: () => void;
 	onAddLetter: (payload: { letterId: string, position: { x: number; y: number }, cellId: UniqueIdentifier }) => void;
 	onRemoveLetter: (payload: { letterId: string }) => void;
 }
 
-function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onRemoveLetter }: IProps) {
+function GamePage({ game, field, fieldLetters, onCreateGame, userId, classes, onAddLetter, onRemoveLetter }: IProps) {
 	const [selectedLetters, setSelectedLetters] = React.useState<string[]>([]);
 	const [words, updateWords] = React.useState<IWords>({});
-	const [fieldLetters, updateFieldLetters] = React.useState<string[]>([]);
 
 	const mouseSensor = useSensor(MouseSensor, {
 		activationConstraint: {
 			distance: 10,
 		},
 	});
-
-	React.useEffect(() => {
-		const res: string[] = [];
-
-		(field || []).map((row: any) => {
-			row.map((cell: any) => {
-				const value = Number(cell);
-				if (cell !== null && typeof value === 'number' && !isNaN(value)) {
-					res.push(cell as string);
-				}
-			})
-		});
-
-		updateFieldLetters(res);
-	}, [field]);
 
 	const sensors = useSensors(mouseSensor);
 
@@ -118,8 +103,6 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 				kind: axis === 'y' ? 'vertical' : 'horizontal'
 			}
 		}
-
-		console.log('-----makeWord------', result);
 
 		return result;
 	}
@@ -259,47 +242,6 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 		}
 	};
 
-	const onCellClick = React.useCallback(
-		(id: string, pos: { x: number; y: number }) => {
-			if (selectedLetters.length) {
-				const letterId = selectedLetters[0];
-
-				setTimeout(() => {
-					dropLetters((state) => {
-						state.set(letterId, {
-							fieldCell: id,
-							position: {
-								top: calculatePosition(FIELD_POSITION_START_Y, pos.y),
-								left: calculatePosition(FIELD_POSITION_START_X, pos.x),
-								x: pos.x,
-								y: pos.y
-							}
-						});
-
-						const data: IWords = generateWords(state);
-
-						console.log('-----DATA-----', data);
-
-						updateWords(() => ({ ...data }));
-
-						return state;
-
-					});
-				}, 0);
-
-				const indexOf = selectedLetters.indexOf(letterId.toString());
-
-				setSelectedLetters((state) => {
-					const newState = [...state];
-					newState.splice(indexOf, 1);
-
-					return newState;
-				});
-			}
-		},
-		[selectedLetters],
-	);
-
 	const handleDragEnd = ({ over, active }: DragEndEvent) => {
 		const letterId = active.id as string;
 		const letter = game!.letters[letterId];
@@ -317,6 +259,10 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 				position,
 			};
 
+			if (fieldLetters.includes(letterId)) {
+				onRemoveLetter({letterId});
+			}
+
 			onAddLetter({ letterId, position, cellId: over.id });
 		} else {
 			onRemoveLetter({letterId: active.id as string});
@@ -331,17 +277,28 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 				{playerLetters?.map((letterId, i) => {
 					const posLeft = calculatePosition(LETTERS_POSITION_START_X, i);
 
-					console.log('-----PLAYER LETTER ID-------', letterId);
+					let position: {top: number, left: number} = {
+						top: LETTERS_POSITION_START_Y,
+						left: posLeft,
+					};
+
 					if (fieldLetters.includes(letterId)) {
-						return null;
+						(field as IField).forEach((row, rowIndex) => {
+							row.forEach((cell, cellIndex) => {
+								if (cell === letterId) {
+									position.top = calculatePosition(FIELD_POSITION_START_Y, rowIndex);
+									position.left = calculatePosition(FIELD_POSITION_START_X, cellIndex);
+								}
+							});
+						})
 					}
 
 					return (
 						<DraggableLetter
 							key={h32(letterId, 0xabcd).toString()}
 							styles={{
-								top: LETTERS_POSITION_START_Y,
-								left: posLeft,
+								top: position.top,
+								left: position.left,
 							}}
 							isSelected={selectedLetters.includes(letterId)}
 							letterId={letterId}
@@ -364,26 +321,12 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 		);
 	}
 
-	console.log('---------words--------', words);
 
-	const renderLetter = (letterId: string, isCurrentTurn: boolean) => {
+	const renderLetter = (letterId: string) => {
 		const letter = game?.letters[letterId] as unknown as any;
 
-		console.log('------LETTER-------', letter);
-
-		// return null;
-
-		if (isCurrentTurn) {
-			return (
-				<DraggableLetter
-					key={h32(letterId, 0xabcd).toString()}
-					isSelected={selectedLetters.includes(letterId)}
-					letterId={letterId}
-					onClick={() => toogleSelected(letterId)}
-					onRightClick={(e: any) => handleRightClick(letterId, e)}
-				/>
-				
-			)
+		if (fieldLetters.includes(letterId)) {
+			return null;
 		}
 
 		return (
@@ -393,8 +336,6 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 			/>
 		);
 	}
-
-	console.log('----RERENDER-----');
 
 	return (
 		<div className={classes.game}>
@@ -413,10 +354,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 								};
 
 								const isLetterId = value && (!isNaN(Number(value)));
-
 								const isDisabledCell = !!(isLetterId && fieldLetters.includes(value));
-			
-								const isCurrentTurn = !!field.isCurrentTurn;
 								
 								return (
 									<DroppableCell
@@ -426,9 +364,8 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 										position={position}
 										key={h32(`${(value && !isLetterId ? value : '') + id}dr-cell`, 0xabcd).toString()}
 										bonus={value && !isLetterId ? value : null}
-										onClick={() => onCellClick(id, position)}
 									>
-										{isLetterId && renderLetter(value as unknown as string, isCurrentTurn)}
+										{isLetterId && renderLetter(value as unknown as string)}
 									</DroppableCell>
 								);
 							})}

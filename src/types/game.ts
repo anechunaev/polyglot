@@ -43,4 +43,8 @@ export interface IGameState {
     words?: IWords;
     field: Field
     timer: ITimer;
+    turn?: {
+		droppedLetters: string[];
+		words: IWords
+	}
 }

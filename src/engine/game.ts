@@ -39,7 +39,7 @@ export interface IState {
 		total: number;
 	};
 	turn?: {
-		droppedLetters: Map<string, any>;
+		droppedLetters: string[];
 		words: IWords
 	}
 }
@@ -89,7 +89,7 @@ export class GameEngine implements IGame {
 				total: settings.timer,
 			},
 			turn: {
-				droppedLetters: new Map(),
+				droppedLetters: [],
 				words: {}
 			}
 		};
@@ -124,26 +124,23 @@ export class GameEngine implements IGame {
 		);
 	}
 
-	private getNextPlayerId() {
-		const players = Object.keys(this.state.players);
-		const currentPlayerIndex = players.indexOf(this.state.activePlayer);
-
-		const nextPlayerIndex = (currentPlayerIndex + 1) % players.length;
-
-		return players[nextPlayerIndex];
-	}
-
-	public calculateWordScore() { }
-
 	public addLetter(payload: IAddLetter) {
 		const { position, letterId } = payload;
 
 		this.state.field[position.y][position.x] = letterId;
+
+		this.state.turn?.droppedLetters.push(letterId);
 		
+		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, {dropppedLetters: this.state.turn?.droppedLetters, sessions: this.sessions});
 		this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
 	}
 
 	public removeLetter({letterId}: IRemoveLetter) {
+		const droppedLetter = this.state.turn?.droppedLetters.indexOf(letterId);
+		if (droppedLetter && droppedLetter !== -1) {
+			this.state.turn?.droppedLetters.splice(droppedLetter, 1);
+		}
+
 		this.state.field.forEach((row, rowIndex) => {
 			row.forEach((cellContent, cellIndex) => {
 				if (cellContent === letterId) {
@@ -153,6 +150,7 @@ export class GameEngine implements IGame {
 			})
 		});
 
+		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, {dropppedLetters: this.state.turn?.droppedLetters, sessions: this.sessions});
 		this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
 	}
 
@@ -201,84 +199,7 @@ export class GameEngine implements IGame {
 	}
 
 	public nextTurn(turn: ITurn, secret: string) {
-		const player = this.state.players[this.state.activePlayer];
-
-		if (secret !== player.secret) {
-			console.error('Not a valid user for the current turn');
-		}
-
-		const newSecret = uuid4();
-
-		// if (turn.words.length) {
-		// 	turn.words.forEach((word) => {
-		// 		let score = 0;
-		// 		let wordMultiplier = 0;
-		// 		const { letters, position, type } = word;
-
-		// 		letters.forEach((letterId, index) => {
-		// 			const letter = this.state.letters[letterId];
-
-		// 			letter.located = {
-		// 				in: 'field',
-		// 				// position: {
-		// 				// 	x: type === 'horizontal' ? position.x + index : position.x,
-		// 				// 	y: type === 'vertical' ? position.y + index : position.y,
-		// 				// },
-		// 			};
-		// 			const fieldBonus = this.state.field[letter.located.position.y][letter.located.position.x];
-
-		// 			if (fieldBonus) {
-		// 				switch (fieldBonus) {
-		// 					case 'w3':
-		// 						wordMultiplier += 3;
-		// 						break;
-		// 					case 'w2':
-		// 						wordMultiplier += 2;
-		// 						break;
-		// 					case 'l3':
-		// 						letter.price *= 3;
-		// 						break;
-		// 					case 'l2':
-		// 						letter.price *= 2;
-		// 						break;
-		// 					default:
-		// 						return null;
-		// 				}
-		// 				// each bonus could be used only once during the game
-		// 				this.state.field[letter.located.position.y][letter.located.position.x] = null;
-		// 			}
-
-		// 			score += letter.price;
-		// 			this.state.letters[letterId] = letter;
-		// 		});
-
-		// 		if (wordMultiplier) {
-		// 			score *= wordMultiplier;
-		// 		}
-
-		// 		this.state.players[turn.playerId].score += score;
-		// 	});
-		// }
-
-		player.secret = newSecret;
-
-		const lettersCount = PLAYER_MAX_LETTERS_CAPACITY - player.letters.length;
-
-		if (lettersCount) {
-			const letterIds = this.letters.getRandomLetters(lettersCount);
-
-			player.letters = [...player.letters, ...letterIds];
-		}
-
-		this.state.players[this.state.activePlayer] = player;
-
-		this.state.activePlayer = this.getNextPlayerId();
-
-		if (player.score >= this.max_score) {
-			this.finish(player);
-		}
-
-		this.eventBus.emit(EVENTS.ON_NEXT_TURN, { gameId: this.id, data: this.state, sessions: this.sessions });
+		// @TODO 
 	}
 
 	public onTimerTick = (time: number, total: number) => {

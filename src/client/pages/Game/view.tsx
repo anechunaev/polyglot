@@ -46,7 +46,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 
 	const sensors = useSensors(mouseSensor);
 
-	//@TODO: вынести на сервер
+	// @TODO: вынести на сервер
 	const makeWord = (letterId: string, startPosition: { x: number; y: number }, axis: 'y' | 'x') => {
 		const letters = [letterId];
 		const topLimit = 0;
@@ -108,7 +108,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 
 		return result;
 	}
-	//@TODO: вынести на сервер
+	// @TODO: вынести на сервер
 	const makeNewWords = (letterId: string, position: { x: number; y: number }) => {
 		const verticalWord = makeWord(letterId, position, 'y');
 		const horizontalWord = makeWord(letterId, position, 'x');
@@ -135,7 +135,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 
 		return response;
 	}
-	//@TODO: вынести на сервер
+	// @TODO: вынести на сервер
 	const updateCurrentWords = (data: IWords, letterId: string, position: { x: number; y: number }) => {
 		const newLetterPosition = `${position.x};${position.y}`;
 
@@ -184,7 +184,7 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 
 		return { changedWords: newWords };
 	}
-	//@TODO: вынести на сервер
+	// @TODO: вынести на сервер
 	const generateWords = (items: Map<string, any>) => {
 		const data: IWords = [...items.keys()].reduce((acc, droppedLetterId) => {
 			const letter = items.get(droppedLetterId);
@@ -451,11 +451,11 @@ function GamePage({ game, field, onCreateGame, userId, classes, onAddLetter, onR
 		if (isCurrentTurn) {
 			return (
 				<DraggableLetter
-				key={h32(letterId, 0xabcd).toString()}
-				isSelected={selectedLetters.includes(letterId)}
-				letterId={letterId}
-				onClick={() => toogleSelected(letterId)}
-				onRightClick={(e: any) => handleRightClick(letterId, e)}
+					key={h32(letterId, 0xabcd).toString()}
+					isSelected={selectedLetters.includes(letterId)}
+					letterId={letterId}
+					onClick={() => toogleSelected(letterId)}
+					onRightClick={(e: any) => handleRightClick(letterId, e)}
 				/>
 				
 			)

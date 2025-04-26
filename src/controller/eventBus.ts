@@ -5,6 +5,7 @@ export class EventBus {
         this.listeners[eventName] = this.listeners[eventName] ?? [];
         this.listeners[eventName].push(cb);
     }
+
     public off(eventName: string, cb: (payload?: any) => void) {
         if (!this.listeners[eventName]) {
             return;
@@ -16,6 +17,7 @@ export class EventBus {
             this.listeners[eventName].splice(index, 1);
         }
     }
+
     public emit(eventName: string, eventPayload: Record<string, any>) {
         this.listeners[eventName]?.forEach(cb => {
             cb(eventPayload);

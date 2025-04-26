@@ -61,6 +61,14 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			updateField(payload.field);
 		}, []));
 
+		eventBus.on(EVENTS.UPDATE_TURN_FIELD, React.useCallback((payload: any) => {
+			const currentTurnField = [...payload.field];
+
+			(currentTurnField as any).isCurrentTurn = true;
+
+			updateField(currentTurnField);
+		}, []));
+
 		const onCreateGame = () => {
 			eventBus.emit(EVENTS.CREATE_GAME, {
 				settings: {

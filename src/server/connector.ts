@@ -1,9 +1,8 @@
 import type { Socket } from 'socket.io';
 import { EVENTS } from '../constants';
-import type { EventBus } from '../controller/eventBus';
 
 
-export function connect(controller: any, eventBus: EventBus) {
+export function connect(controller: any) {
 	return function (socket: Socket, next: () => void) {
 		socket.on(EVENTS.JOIN_GAME, (payload: any) => {
 			controller.onJoin(payload);

@@ -92,7 +92,11 @@ eventBus.on(EVENTS.UPDATE_FIELD, payload => {
 	emitAll(EVENTS.UPDATE_FIELD, payload);
 });
 
-io.use(connect(controller, eventBus));
+eventBus.on(EVENTS.UPDATE_TURN_FIELD, payload => {
+	emitAll(EVENTS.UPDATE_TURN_FIELD, payload);
+})
+
+io.use(connect(controller));
 
 const server = app.listen(env.port, env.host, () => {
 	console.log(`Server @ http://${env.host}:${env.port}`);

@@ -1,8 +1,8 @@
 import uuid4 from 'uuid4';
 import { ITimerInstance, Timer } from '../server/services/Timer';
 import type { ILettersService } from '../server/services/Letters';
-import type { IDictionary } from '../server/services/dictionary';
-import type { Letters, UserId, GameId, Field, IPlayer, ISpectator, IUser, IWords, IAddLetter, IRemoveLetter } from '../types';
+import type { Dictionary, IDictionary } from '../server/services/dictionary';
+import type { Letters, UserId, GameId, Field, IPlayer, ISpectator, IUser, IWords, IWord, IAddLetter, IRemoveLetter } from '../types';
 import { generateFieldSchema } from './helpers';
 import type { EventBus } from '../controller/eventBus';
 import {
@@ -62,8 +62,10 @@ export class GameEngine implements IGame {
 	private timer: ITimerInstance;
 	private letters: ILettersService;
 	public id: GameId;
+	private _initialField: Field;
 	private max_score: number;
 	public eventBus: EventBus;
+	private dictionary: IDictionary;
 	public sessions: string[];
 
 	constructor(eventBus: EventBus, settings: IGameSettings, user: IUser, dictionary: IDictionary, sessionId: string) {
@@ -71,6 +73,7 @@ export class GameEngine implements IGame {
 		const lettersService = new LettersService(letterConfig);
 		const initialWord = dictionary.getInitialWord();
 		const field = generateFieldSchema();
+		const initialField = generateFieldSchema();
 
 		this.state = {
 			activePlayer: user.id,
@@ -104,6 +107,8 @@ export class GameEngine implements IGame {
 		this.letters = lettersService;
 		this.max_score = settings.max_score;
 		this.eventBus = eventBus;
+		this.dictionary = dictionary;
+		this._initialField = initialField;
 
 	}
 
@@ -123,47 +128,115 @@ export class GameEngine implements IGame {
 			this.state.players[this.state.activePlayer].secret!,
 		);
 	}
-	
-	private generateWords = () => {
-		const data: IWords = this.state.turn!.droppedLetters.reduce((acc, droppedLetterId) => {
-		
-		const position = {y: 0, x: 0};
-		for (let i = 0; i < this.state.field.length; i++) {
-			for (let j = 0; j < this.state.field[i].length; j++) {
-				if (this.state.field[i][j] === droppedLetterId) {
-					position.y = i;
-					position.x = j;
-					break;
+
+	// @TODO: todo!()
+
+	// private nextTurn = () => {
+	// 	// перед следующим ходом сделать this._initialField = null для каждой буквы выложенного слова
+	// 	// это нужно, поскольку каждый бонус можно использовать только единажды 
+	// }
+
+	private handleWords = () => {
+		const data = this.generateWords();
+
+		const res = Object.values(data).map(item => {
+			const { letterIds } = item;
+			const word = letterIds.map(letterId => this.state!.letters![letterId].value).join('');
+			const isValid = this.validateWord(word.toLowerCase());
+			const score = this.calculateWordScore(item);
+
+			return { ...item, isValid, score, __debug: word };
+		});
+
+		console.log('=> WORDS: ', res);
+
+		this.eventBus.emit(EVENTS.UPDATE_TURN_WORDS, {words: res, sessions: this.sessions});
+	}
+
+	private validateWord = (word: string) => {
+		return this.dictionary.checkWord(word);
+	}
+
+	private calculateWordScore = (word: IWord) => {
+		let [y, x] = word.start.split(';').map(Number);
+
+		let score = 0;
+		let wordMultiplier = 0;
+
+		for (let i = 0; i < word.letterIds.length; i++) {
+			const fieldBonus = this._initialField[y][x];
+
+			let letterPrice = this.state.letters![word.letterIds[i]].price;
+
+			if (fieldBonus) {
+				switch (fieldBonus) {
+					case 'w3':
+						wordMultiplier += 3;
+						break;
+					case 'w2':
+						wordMultiplier += 2;
+						break;
+					case 'l3':
+						letterPrice *= 3;
+						break;
+					case 'l2':
+						letterPrice *= 2;
+						break;
+					default:
+						return null;
 				}
+			}
+
+			score += letterPrice;
+
+			if (word.kind === 'vertical') {
+				y++;
+				continue;
+			} else if (word.kind === 'horizontal') {
+				x++;
+				continue;
 			}
 		}
 
-		if (Object.keys(acc).length) {
-			const { changedWords } = this.updateCurrentWords(acc, droppedLetterId, position);
-			const newWords = this.makeNewWords(droppedLetterId, position);
-			acc = { ...changedWords, ...newWords };
-		} else {
-			const newWords = this.makeNewWords(droppedLetterId, position);
-			acc = { ...newWords };
+		if (wordMultiplier) {
+			score *= wordMultiplier;
 		}
-			
-		return acc;
+
+		return score;
+	}
+
+	private generateWords = () => {
+		const data: IWords = this.state.turn!.droppedLetters.reduce((acc, droppedLetterId) => {
+
+			const position = { y: 0, x: 0 };
+			for (let i = 0; i < this.state.field.length; i++) {
+				for (let j = 0; j < this.state.field[i].length; j++) {
+					if (this.state.field[i][j] === droppedLetterId) {
+						position.y = i;
+						position.x = j;
+						break;
+					}
+				}
+			}
+
+			if (Object.keys(acc).length) {
+				const { changedWords } = this.updateCurrentWords(acc, droppedLetterId, position);
+				const newWords = this.makeNewWords(droppedLetterId, position);
+				acc = { ...changedWords, ...newWords };
+			} else {
+				const newWords = this.makeNewWords(droppedLetterId, position);
+				acc = { ...newWords };
+			}
+
+			return acc;
 		}, {});
 
-		const res = Object.values(data).map(item => {
-			const {letterIds} = item;
-
-			const word = letterIds.map(letterId => this.state!.letters![letterId].value);
-
-			return {...item, word };
-		});
-
-		console.log('----WORDS: ----', res);
+		return data;
 	}
 
 	private makeNewWords = (letterId: string, position: { x: number; y: number }) => {
 		const verticalWord = this.makeWord(letterId, position, 'y');
-		const horizontalWord =this.makeWord(letterId, position, 'x');
+		const horizontalWord = this.makeWord(letterId, position, 'x');
 		let response: IWords = {};
 
 		if (!Object.keys(verticalWord).length && !Object.keys(horizontalWord).length) {
@@ -171,7 +244,7 @@ export class GameEngine implements IGame {
 			const wordId = [letterId].join(';');
 
 			response[wordId] = {
-				start: `${position.x};${position.y}`,
+				start: `${position.y};${position.x}`,
 				letterIds: [letterId],
 				kind: 'vertical'
 			}
@@ -192,7 +265,7 @@ export class GameEngine implements IGame {
 		const letters = [letterId];
 		const topLimit = 0;
 		const bottomLimit = this.state.field.length - 1;
-		let wordStartPosition = `${startPosition.x};${startPosition.y}`;
+		let wordStartPosition = `${startPosition.y};${startPosition.x}`;
 		let up = startPosition[axis] > topLimit;
 
 		const result: IWords = {};
@@ -210,7 +283,7 @@ export class GameEngine implements IGame {
 					return walk(startPosition);
 				}
 
-				wordStartPosition = `${position.x};${position.y}`;
+				wordStartPosition = `${position.y};${position.x}`;
 				letters.unshift(data);
 
 				return walk(position);
@@ -249,7 +322,7 @@ export class GameEngine implements IGame {
 	}
 
 	private updateCurrentWords = (data: IWords, letterId: string, position: { x: number; y: number }) => {
-		const newLetterPosition = `${position.x};${position.y}`;
+		const newLetterPosition = `${position.y};${position.x}`;
 
 		const newWords = Object.keys(data).reduce<IWords>((acc, wordId) => {
 			const word = data[wordId];
@@ -257,7 +330,7 @@ export class GameEngine implements IGame {
 
 			const newWord = { ...word };
 
-			const [x, y] = start.split(';');
+			const [y, x] = start.split(';');
 
 			let upperLetterPosition;
 			let bottomLetterPosition;
@@ -265,13 +338,13 @@ export class GameEngine implements IGame {
 			if (kind === 'vertical') {
 				const verticalLimit = Number(y) + (letterIds.length - 1);
 
-				upperLetterPosition = `${x};${Number(y) - 1}`;
-				bottomLetterPosition = `${x};${Number(verticalLimit) + 1}`;
+				upperLetterPosition = `${Number(y) - 1};${x}`;
+				bottomLetterPosition = `${Number(verticalLimit) + 1};${x}`;
 
 			} else {
 				const horizontalLimit = Number(x) + (letterIds.length - 1);
-				upperLetterPosition = `${Number(x) - 1};${y}`;
-				bottomLetterPosition = `${Number(horizontalLimit) + 1};${y}`;
+				upperLetterPosition = `${y};${Number(x) - 1}`;
+				bottomLetterPosition = `${y};${Number(horizontalLimit) + 1}`;
 			}
 
 			if (newLetterPosition === upperLetterPosition || newLetterPosition === bottomLetterPosition) {
@@ -304,13 +377,13 @@ export class GameEngine implements IGame {
 
 		this.state.turn?.droppedLetters.push(letterId);
 
-		this.generateWords();
-		
-		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, {dropppedLetters: this.state.turn?.droppedLetters, sessions: this.sessions});
+		this.handleWords();
+
+		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, { dropppedLetters: this.state.turn?.droppedLetters, sessions: this.sessions });
 		this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
 	}
 
-	public removeLetter({letterId}: IRemoveLetter) {
+	public removeLetter({ letterId }: IRemoveLetter) {
 		const droppedLetter = this.state.turn?.droppedLetters.indexOf(letterId);
 		if (droppedLetter && droppedLetter !== -1) {
 			this.state.turn?.droppedLetters.splice(droppedLetter, 1);
@@ -324,9 +397,9 @@ export class GameEngine implements IGame {
 			})
 		});
 
-		this.generateWords();
+		this.handleWords();
 
-		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, {dropppedLetters: this.state.turn?.droppedLetters, sessions: this.sessions});
+		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, { dropppedLetters: this.state.turn?.droppedLetters, sessions: this.sessions });
 		this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
 	}
 

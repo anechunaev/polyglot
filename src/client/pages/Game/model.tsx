@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { EVENTS } from '../../../constants';
 import type { IProps as IViewProps } from './view';
-import type { IGameState, IUser, ITimer } from '../../../types';
+import type { IGameState, IUser, ITimer, IWord } from '../../../types';
 import { useAppDispatch } from '../../hooks';
-import { updateLetters, updateTimer, updateActivePlayer, updatePlayers } from '../../reducers';
+import { updateLetters, updateTimer, updateActivePlayer, updatePlayers, updateField, updateWords} from '../../reducers';
 
 export interface IProps {
 	eventBus: any;
@@ -14,7 +14,7 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 	function GameModel({ eventBus }: IProps) {
 		const [user, setUser] = React.useState<IUser | null>(null);
 		const [gameId, updateGameid] = React.useState<string>();
-		const [field, updateField] = React.useState<any>();
+		const [words, updateTurnWords] = React.useState<IWord[]>([]);
 		const [fieldLetters, updateFieldLetters] = React.useState<string[]>([]);
 		const [gameState, updateGameState] = React.useState<IGameState | null>(null);
 		const dispatch = useAppDispatch();
@@ -27,8 +27,11 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			const data: { game: IGameState; gameId: string } = JSON.parse(payload);
 
 			updateGameState(() => ({ ...data.game }));
-			updateField(data.game.field);
-			updateFieldLetters(data.game.turn.droppedLetters)
+			dispatch(updateField(data.game.field));
+
+			if (data.game.turn?.droppedLetters && data.game.turn?.droppedLetters.length) {
+				updateFieldLetters(data.game.turn.droppedLetters);
+			}
 			updateGameid(data.gameId);
 
 			dispatch(updateLetters({ ...data.game.letters }));
@@ -60,16 +63,20 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 		);
 
 		eventBus.on(EVENTS.UPDATE_FIELD, React.useCallback((payload: any) => {
-			updateField(payload.field);
+			dispatch(updateField(payload.field));
 		}, []));
 
 		eventBus.on(EVENTS.UPDATE_TURN_FIELD, React.useCallback((payload: any) => {
-			updateField(payload.field);
+			dispatch(updateField(payload.field));
 		}, []));
 
 		eventBus.on(EVENTS.UPDATE_TURN_LETTERS, React.useCallback((payload: any) => {
 			updateFieldLetters(payload.dropppedLetters);
 		}, []));
+
+		eventBus.on(EVENTS.UPDATE_TURN_WORDS, React.useCallback((payload: any) => {
+			updateTurnWords(payload.words);
+		}, []))
 
 		const onCreateGame = () => {
 			eventBus.emit(EVENTS.CREATE_GAME, {
@@ -91,7 +98,7 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			return null;
 		}
 
-		return <View game={gameState} fieldLetters={fieldLetters} field={field} userId={user!.id} onCreateGame={onCreateGame} onAddLetter={onAddLetter} onRemoveLetter={onRemoveLetter} />;
+		return <View game={gameState} words={words} fieldLetters={fieldLetters} userId={user!.id} onCreateGame={onCreateGame} onAddLetter={onAddLetter} onRemoveLetter={onRemoveLetter} />;
 	}
 
 	GameModel.displayName = 'GameModel';

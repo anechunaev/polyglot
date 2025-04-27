@@ -23,13 +23,16 @@ export interface ITimer {
     total: number;
 };
 
+export interface IWord {
+    start: string;
+    letterIds: LetterId[];
+    kind: 'vertical' | 'horizontal';
+    score?: number;
+    isValid?: boolean;
+}
+
 export interface IWords {
-    [id: string]: {
-        start: string;
-        letterIds: LetterId[];
-        kind: 'vertical' | 'horizontal';
-        score?: number;
-    }
+    [id: string]: IWord
 }
 
 export interface IGameState {

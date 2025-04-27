@@ -100,6 +100,10 @@ eventBus.on(EVENTS.UPDATE_TURN_LETTERS, payload => {
 	emitAll(EVENTS.UPDATE_TURN_LETTERS, payload);
 });
 
+eventBus.on(EVENTS.UPDATE_TURN_WORDS, payload => {
+	emitAll(EVENTS.UPDATE_TURN_WORDS, payload);
+});
+
 io.use(connect(controller));
 
 const server = app.listen(env.port, env.host, () => {

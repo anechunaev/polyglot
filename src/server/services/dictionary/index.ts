@@ -1,3 +1,5 @@
+import words from './ru.json';
+
 const INITIAL_WORD_LENGTH = 7;
 
 export interface IConfig {
@@ -11,20 +13,15 @@ export interface IDictionary{
 }
 
 export class Dictionary {
-    public dictionary: Set<string>;
     public initialWords: any;
 
     constructor({lang}: IConfig = {lang: 'ru'}) {
-        this.dictionary = new Set<string>();
         this.initialWords = [];
     }
 
     load = async () => {
-        const data = (await import('./ru.json')).default;
-
-        for (let i = 0; i < data.length; i++) {
-            const word = data[i];
-            this.dictionary.add(word);
+        for (let i = 0; i < words.length; i++) {
+            const word = words[i];
 
             if (word.length !== INITIAL_WORD_LENGTH) {
                 continue;
@@ -41,6 +38,6 @@ export class Dictionary {
     }
 
     checkWord(word: string) {
-        return this.dictionary.has(word);
+        return words.includes(word);
     }
 }

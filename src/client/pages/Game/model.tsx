@@ -14,7 +14,6 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 	function GameModel({ eventBus }: IProps) {
 		const [user, setUser] = React.useState<IUser | null>(null);
 		const [gameId, updateGameid] = React.useState<string>();
-		const [words, updateTurnWords] = React.useState<IWord[]>([]);
 		const [fieldLetters, updateFieldLetters] = React.useState<string[]>([]);
 		const [gameState, updateGameState] = React.useState<IGameState | null>(null);
 		const dispatch = useAppDispatch();
@@ -75,7 +74,7 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 		}, []));
 
 		eventBus.on(EVENTS.UPDATE_TURN_WORDS, React.useCallback((payload: any) => {
-			updateTurnWords(payload.words);
+			dispatch(updateWords(payload.words));
 		}, []))
 
 		const onCreateGame = () => {
@@ -98,7 +97,7 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			return null;
 		}
 
-		return <View game={gameState} words={words} fieldLetters={fieldLetters} userId={user!.id} onCreateGame={onCreateGame} onAddLetter={onAddLetter} onRemoveLetter={onRemoveLetter} />;
+		return <View game={gameState} fieldLetters={fieldLetters} userId={user!.id} onCreateGame={onCreateGame} onAddLetter={onAddLetter} onRemoveLetter={onRemoveLetter} />;
 	}
 
 	GameModel.displayName = 'GameModel';

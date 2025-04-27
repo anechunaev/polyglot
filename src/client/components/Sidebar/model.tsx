@@ -1,9 +1,10 @@
 import * as React from 'react';
-import type { IGameState } from '../../../types';
+import type { IGameState, IWord } from '../../../types';
 import { IProps as IViewProps } from './view';
 
 export interface IProps {
 	activePlayer?: IGameState["activePlayer"],
+	words: IWord[];
 	players: IGameState["players"]
 }
 

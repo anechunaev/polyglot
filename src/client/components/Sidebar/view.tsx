@@ -7,11 +7,12 @@ import Button from '../Button';
 import Input from '../Input';
 import Score from "../Score";
 import SearchIcon from './assets/search.svg';
-import type { IGameState } from '../../../types';
+import type { IGameState, IWord } from '../../../types';
 import { PLAYER_DEFAULT_LETTERS_COUNT } from '../../../constants';
 
 export interface IProps {
 	activePlayer?: IGameState["activePlayer"];
+	words: IWord[];
 	players: IGameState["players"]
 }
 
@@ -19,7 +20,7 @@ export interface IEncapsulatedProps extends IProps {
 	classes: Record<string, string>;
 }
 
-function SidebarView({ classes, activePlayer, players }: IEncapsulatedProps) {
+function SidebarView({ classes, activePlayer, players, words }: IEncapsulatedProps) {
 	const renderActivePlayerLabel = () => {
 		if (!activePlayer) {
 			return null
@@ -28,6 +29,8 @@ function SidebarView({ classes, activePlayer, players }: IEncapsulatedProps) {
 		const {name} = players[activePlayer];
 		return name && <span className={classes.activePlayerLabel}>Ход игрока {name}</span>
 	}
+
+	console.log('=> Words: ', words);
 
 	return (
 		<div className={classes.sidebar}>
@@ -42,7 +45,7 @@ function SidebarView({ classes, activePlayer, players }: IEncapsulatedProps) {
 				<Button className={classes.button} onClick={() => {}}>
 					Замена букв
 				</Button>
-				<Button className={classes.button} onClick={() => {}}>
+				<Button disabled={(words && words.some(word => !word.isValid)) || false} className={classes.button} onClick={() => {}}>
 					Завершить ход
 				</Button>
 			</div>

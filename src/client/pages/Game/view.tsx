@@ -12,14 +12,13 @@ export interface IProps {
 	classes: Record<string, string>;
 	game: IGameState | null;
 	userId: UserId;
-	words: IWord[];
 	fieldLetters: string[];
 	onCreateGame: () => void;
 	onAddLetter: (payload: { letterId: string, position: { x: number; y: number }, cellId: UniqueIdentifier }) => void;
 	onRemoveLetter: (payload: { letterId: string }) => void;
 }
 
-function GamePage({ game, words, fieldLetters, onCreateGame, userId, classes, onAddLetter, onRemoveLetter }: IProps) {
+function GamePage({ game, fieldLetters, onCreateGame, userId, classes, onAddLetter, onRemoveLetter }: IProps) {
 	const [selectedLetters, setSelectedLetters] = React.useState<string[]>([]);
 
 	const mouseSensor = useSensor(MouseSensor, {
@@ -78,8 +77,6 @@ function GamePage({ game, words, fieldLetters, onCreateGame, userId, classes, on
 			</div>
 		);
 	}
-
-	console.log('----words------', words);
 
 	return (
 		<div className={classes.game}>

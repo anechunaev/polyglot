@@ -60,7 +60,6 @@ export interface IGame {
 export class GameEngine implements IGame {
 	private state: IState;
 	private timer: ITimerInstance;
-	private letters: ILettersService;
 	public id: GameId;
 	private _initialField: Field;
 	private max_score: number;
@@ -104,7 +103,6 @@ export class GameEngine implements IGame {
 
 		this.id = uuid4();
 		this.timer = timer;
-		this.letters = lettersService;
 		this.max_score = settings.max_score;
 		this.eventBus = eventBus;
 		this.dictionary = dictionary;
@@ -385,7 +383,8 @@ export class GameEngine implements IGame {
 
 	public removeLetter({ letterId }: IRemoveLetter) {
 		const droppedLetter = this.state.turn?.droppedLetters.indexOf(letterId);
-		if (droppedLetter && droppedLetter !== -1) {
+
+		if (typeof droppedLetter === 'number' && droppedLetter !== -1) {
 			this.state.turn?.droppedLetters.splice(droppedLetter, 1);
 		}
 

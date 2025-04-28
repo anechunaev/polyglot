@@ -1,20 +1,24 @@
 import uuid4 from 'uuid4';
 import { ITimerInstance, Timer } from '../server/services/Timer';
-import type { ILettersService } from '../server/services/Letters';
-import type { Dictionary, IDictionary } from '../server/services/dictionary';
-import type { Letters, UserId, GameId, Field, IPlayer, ISpectator, IUser, IWord, IWords, IAddLetter, IRemoveLetter } from '../types';
+import type { IDictionary } from '../server/services/dictionary';
+import type {
+	Letters,
+	UserId,
+	GameId,
+	Field,
+	IPlayer,
+	ISpectator,
+	IUser,
+	IWord,
+	IWords,
+	IAddLetter,
+	IRemoveLetter,
+} from '../types';
 import { generateFieldSchema } from './helpers';
 import type { EventBus } from '../controller/eventBus';
-import {
-	EVENTS,
-	DEFAULT_TIMER_VALUE_SEC,
-	PLAYER_MAX_LETTERS_CAPACITY,
-	PLAYER_DEFAULT_LETTERS_COUNT,
-	ROLES,
-} from '../constants';
+import { EVENTS, DEFAULT_TIMER_VALUE_SEC, PLAYER_DEFAULT_LETTERS_COUNT, ROLES } from '../constants';
 import { LettersService } from '../server/services/Letters';
 import letterConfig from '../server/config/letters_rus.json';
-import { emit } from 'process';
 
 export interface IGameSettings {
 	timer: number;
@@ -42,8 +46,8 @@ export interface IState {
 	};
 	turn?: {
 		droppedLetters: string[];
-		words: IWord[]
-	}
+		words: IWord[];
+	};
 }
 
 export interface IGame {
@@ -64,11 +68,12 @@ export class GameEngine implements IGame {
 	private timer: ITimerInstance;
 	public id: GameId;
 	private letters: LettersService;
-	private _initialField: Field;
+	private initialField: Field;
 	private max_score: number;
 	public eventBus: EventBus;
 	private dictionary: IDictionary;
 	public sessions: string[];
+	private previousWords: IWord[] = [];
 
 	constructor(eventBus: EventBus, settings: IGameSettings, user: IUser, dictionary: IDictionary, sessionId: string) {
 		const timer = new Timer(settings.timer || DEFAULT_TIMER_VALUE_SEC, this.onTimerTick, this.onTimerEnd);
@@ -95,8 +100,8 @@ export class GameEngine implements IGame {
 			},
 			turn: {
 				droppedLetters: [],
-				words: []
-			}
+				words: [],
+			},
 		};
 
 		const letters = this.placeWordOnTheField(initialWord, lettersService.getLetters());
@@ -110,8 +115,7 @@ export class GameEngine implements IGame {
 		this.eventBus = eventBus;
 		this.letters = lettersService;
 		this.dictionary = dictionary;
-		this._initialField = initialField;
-
+		this.initialField = initialField;
 	}
 
 	public start() {
@@ -131,15 +135,15 @@ export class GameEngine implements IGame {
 
 	// private nextTurn = () => {
 	// 	// перед следующим ходом сделать this._initialField = null для каждой буквы выложенного слова
-	// 	// это нужно, поскольку каждый бонус можно использовать только единажды 
+	// 	// это нужно, поскольку каждый бонус можно использовать только единажды
 	// }
 
 	private handleWords = () => {
 		const data = this.generateWords();
 
-		const res = Object.values(data).map(item => {
+		const res = Object.values(data).map((item) => {
 			const { letterIds } = item;
-			const word = letterIds.map(letterId => this.state!.letters![letterId].value).join('');
+			const word = letterIds.map((letterId) => this.state!.letters![letterId].value).join('');
 			const isValid = this.validateWord(word.toLowerCase());
 			const score = this.calculateWordScore(item);
 
@@ -148,12 +152,12 @@ export class GameEngine implements IGame {
 
 		this.state.turn!.words = res;
 
-		console.log('=> WORDS: ', this.state.turn!.words);
+		this.previousWords = [];
 
-		this.eventBus.emit(EVENTS.UPDATE_TURN_WORDS, {words: this.state.turn!.words, sessions: this.sessions});
-	}
+		this.eventBus.emit(EVENTS.UPDATE_TURN_WORDS, { words: this.state.turn!.words, sessions: this.sessions });
+	};
 
-	private validateWord = (word: string) => this.dictionary.checkWord(word)
+	private validateWord = (word: string) => this.dictionary.checkWord(word);
 
 	private calculateWordScore = (word: IWord) => {
 		let [y, x] = word.start.split(';').map(Number);
@@ -162,7 +166,7 @@ export class GameEngine implements IGame {
 		let wordMultiplier = 0;
 
 		for (let i = 0; i < word.letterIds.length; i++) {
-			const fieldBonus = this._initialField[y][x];
+			const fieldBonus = this.initialField[y][x];
 
 			let letterPrice = this.state.letters![word.letterIds[i]].price;
 
@@ -189,10 +193,8 @@ export class GameEngine implements IGame {
 
 			if (word.kind === 'vertical') {
 				y++;
-				continue;
 			} else if (word.kind === 'horizontal') {
 				x++;
-				continue;
 			}
 		}
 
@@ -201,11 +203,10 @@ export class GameEngine implements IGame {
 		}
 
 		return score;
-	}
+	};
 
 	private generateWords = () => {
 		const data: IWords = this.state.turn!.droppedLetters.reduce((acc, droppedLetterId) => {
-
 			const position = { y: 0, x: 0 };
 			for (let i = 0; i < this.state.field.length; i++) {
 				for (let j = 0; j < this.state.field[i].length; j++) {
@@ -218,19 +219,19 @@ export class GameEngine implements IGame {
 			}
 
 			if (Object.keys(acc).length) {
-				const { changedWords } = this.updateCurrentWords(acc, droppedLetterId, position);
+				const { changedWords } = GameEngine.updateCurrentWords(acc, droppedLetterId, position);
 				const newWords = this.makeNewWords(droppedLetterId, position);
-				acc = { ...changedWords, ...newWords };
+				Object.assign(acc, changedWords, newWords);
 			} else {
 				const newWords = this.makeNewWords(droppedLetterId, position);
-				acc = { ...newWords };
+				Object.assign(acc, newWords);
 			}
 
 			return acc;
 		}, {});
 
 		return data;
-	}
+	};
 
 	private makeNewWords = (letterId: string, position: { x: number; y: number }) => {
 		const verticalWord = this.makeWord(letterId, position, 'y');
@@ -244,8 +245,8 @@ export class GameEngine implements IGame {
 			response[wordId] = {
 				start: `${position.y};${position.x}`,
 				letterIds: [letterId],
-				kind: 'vertical'
-			}
+				kind: 'vertical',
+			};
 		}
 
 		if (Object.keys(verticalWord).length) {
@@ -257,7 +258,7 @@ export class GameEngine implements IGame {
 		}
 
 		return response;
-	}
+	};
 
 	private makeWord = (letterId: string, startPosition: { x: number; y: number }, axis: 'y' | 'x') => {
 		const letters = [letterId];
@@ -301,8 +302,7 @@ export class GameEngine implements IGame {
 
 			letters.push(data);
 			return walk(position);
-
-		}
+		};
 
 		walk(startPosition);
 
@@ -312,14 +312,14 @@ export class GameEngine implements IGame {
 			result[wordId] = {
 				start: wordStartPosition,
 				letterIds: letters,
-				kind: axis === 'y' ? 'vertical' : 'horizontal'
-			}
+				kind: axis === 'y' ? 'vertical' : 'horizontal',
+			};
 		}
 
 		return result;
-	}
+	};
 
-	private updateCurrentWords = (data: IWords, letterId: string, position: { x: number; y: number }) => {
+	private static updateCurrentWords = (data: IWords, letterId: string, position: { x: number; y: number }) => {
 		const newLetterPosition = `${position.y};${position.x}`;
 
 		const newWords = Object.keys(data).reduce<IWords>((acc, wordId) => {
@@ -338,7 +338,6 @@ export class GameEngine implements IGame {
 
 				upperLetterPosition = `${Number(y) - 1};${x}`;
 				bottomLetterPosition = `${Number(verticalLimit) + 1};${x}`;
-
 			} else {
 				const horizontalLimit = Number(x) + (letterIds.length - 1);
 				upperLetterPosition = `${y};${Number(x) - 1}`;
@@ -358,7 +357,6 @@ export class GameEngine implements IGame {
 
 				acc[newId] = newWord;
 			} else {
-
 				acc[wordId] = newWord;
 			}
 
@@ -366,7 +364,7 @@ export class GameEngine implements IGame {
 		}, {});
 
 		return { changedWords: newWords };
-	}
+	};
 
 	public addLetter(payload: IAddLetter) {
 		const { position, letterId } = payload;
@@ -377,7 +375,10 @@ export class GameEngine implements IGame {
 
 		this.handleWords();
 
-		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, { dropppedLetters: this.state.turn?.droppedLetters, sessions: this.sessions });
+		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, {
+			dropppedLetters: this.state.turn?.droppedLetters,
+			sessions: this.sessions,
+		});
 		this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
 	}
 
@@ -393,12 +394,15 @@ export class GameEngine implements IGame {
 				if (cellContent === letterId) {
 					this.state.field[rowIndex][cellIndex] = generateFieldSchema()[rowIndex][cellIndex];
 				}
-			})
+			});
 		});
 
 		this.handleWords();
 
-		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, { dropppedLetters: this.state.turn?.droppedLetters, sessions: this.sessions });
+		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, {
+			dropppedLetters: this.state.turn?.droppedLetters,
+			sessions: this.sessions,
+		});
 		this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
 	}
 
@@ -406,7 +410,7 @@ export class GameEngine implements IGame {
 		let newLetters = { ...letters };
 		const position = {
 			x: 4,
-			y: 7
+			y: 7,
 		};
 
 		for (let i = 0; i < word.length; i++) {
@@ -428,16 +432,14 @@ export class GameEngine implements IGame {
 									in: 'field',
 									position: {
 										x: left,
-										y: top
-									}
-								}
-							}
-
+										y: top,
+									},
+								},
+							},
 						};
 
 						this.state.field[top][left] = letterId;
 						break;
-
 					}
 				}
 			}
@@ -448,24 +450,24 @@ export class GameEngine implements IGame {
 
 	public nextTurn() {
 		const playerLetters = this.state.players[this.state.activePlayer].letters;
-		const letters = this.state.turn?.droppedLetters && this.letters.getRandomLetters(this.state.turn?.droppedLetters.length);
+		const letters =
+			this.state.turn?.droppedLetters && this.letters.getRandomLetters(this.state.turn?.droppedLetters.length);
 		// mark new letters that were put out the stock
 		this.state.letters = this.letters.getLetters();
 
 		// give new letters for the current player
-		this.state.turn?.droppedLetters.forEach(dropppedLetter => {
+		this.state.turn?.droppedLetters.forEach((dropppedLetter) => {
 			const dropppedPlayerLetter = playerLetters.indexOf(dropppedLetter);
 
 			const newLetter = letters && letters.pop();
 
-			newLetter && this.state.players[this.state.activePlayer].letters.splice(dropppedPlayerLetter, 1, newLetter);
+			if (newLetter) {
+				this.state.players[this.state.activePlayer].letters.splice(dropppedPlayerLetter, 1, newLetter);
+			}
 		});
 
 		// calculate new score for the current player
-		const score = this.state.turn?.words.reduce<number>((acc, word) => {
-			acc += word.score!;
-			return acc;
-		}, 0);
+		const score = this.state.turn?.words.reduce<number>((acc, word) => acc + (word.score ?? 0), 0);
 
 		this.state.players[this.state.activePlayer].score += score || 0;
 
@@ -474,22 +476,30 @@ export class GameEngine implements IGame {
 		const currentPlayerIndex = players.indexOf(this.state.activePlayer);
 
 		if (currentPlayerIndex === players.length) {
-			this.state.activePlayer = players[0];
+			[this.state.activePlayer] = players;
 		}
+
+		this.previousWords = this.state.turn?.words || [];
 
 		this.state.turn = {
 			droppedLetters: [],
-			words: []
+			words: [],
 		};
 
 		this.timer.stop();
 
-		this.eventBus.emit(EVENTS.UPDATE_PLAYERS, {players: this.state.players, sessions: this.sessions});
+		this.eventBus.emit(EVENTS.UPDATE_PLAYERS, { players: this.state.players, sessions: this.sessions });
 		this.eventBus.emit(EVENTS.UPDATE_LETTERS, { letters: this.state.letters, sessions: this.sessions });
-		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, { dropppedLetters: this.state.turn?.droppedLetters, sessions: this.sessions });
-		this.eventBus.emit(EVENTS.UPDATE_TURN_WORDS,  {words: this.state.turn!.words, sessions: this.sessions});
+		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, {
+			dropppedLetters: this.state.turn?.droppedLetters,
+			sessions: this.sessions,
+		});
+		this.eventBus.emit(EVENTS.UPDATE_TURN_WORDS, {
+			words: this.previousWords.map((word) => ({ ...word, isPrevious: true })),
+			sessions: this.sessions,
+		});
 
-		//set new timer
+		// set new timer
 		this.timer = new Timer(DEFAULT_TIMER_VALUE_SEC, this.onTimerTick, this.onTimerEnd);
 		this.timer.start();
 	}
@@ -503,7 +513,11 @@ export class GameEngine implements IGame {
 	}
 
 	public finish(player?: IPlayer) {
-		this.eventBus.emit(EVENTS.ON_FINISH_GAME, { gameId: this.id, data: { winner: { name: player?.name, score: player?.score } }, sessions: this.sessions });
+		this.eventBus.emit(EVENTS.ON_FINISH_GAME, {
+			gameId: this.id,
+			data: { winner: { name: player?.name, score: player?.score } },
+			sessions: this.sessions,
+		});
 	}
 
 	public canJoin(max_players: number) {

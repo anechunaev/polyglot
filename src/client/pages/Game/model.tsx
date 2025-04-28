@@ -1,9 +1,16 @@
 import * as React from 'react';
 import { EVENTS } from '../../../constants';
 import type { IProps as IViewProps } from './view';
-import type { IGameState, IUser, ITimer, IWord } from '../../../types';
+import type { IGameState, IUser, ITimer } from '../../../types';
 import { useAppDispatch } from '../../hooks';
-import { updateLetters, updateTimer, updateActivePlayer, updatePlayers, updateField, updateWords} from '../../reducers';
+import {
+	updateLetters,
+	updateTimer,
+	updateActivePlayer,
+	updatePlayers,
+	updateField,
+	updateWords,
+} from '../../reducers';
 
 export interface IProps {
 	eventBus: any;
@@ -36,17 +43,11 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			dispatch(updateLetters({ ...data.game.letters }));
 			dispatch(updateActivePlayer(data.game.activePlayer));
 			dispatch(updatePlayers(data.game.players));
-		}
+		};
 
-		eventBus.on(
-			EVENTS.CREATE_GAME,
-			React.useCallback(loadGame, []),
-		);
+		eventBus.on(EVENTS.CREATE_GAME, React.useCallback(loadGame, [dispatch]));
 
-		eventBus.on(
-			EVENTS.GAME_SESSION_RECONNECT,
-			React.useCallback(loadGame, []),
-		)
+		eventBus.on(EVENTS.GAME_SESSION_RECONNECT, React.useCallback(loadGame, [dispatch]));
 
 		eventBus.on(
 			EVENTS.GET_CURRENT_USER,
@@ -55,27 +56,52 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			}, []),
 		);
 
-		eventBus.on(EVENTS.ON_TIMER_TICK,
-			React.useCallback((payload: {data: ITimer}) => {
-				dispatch(updateTimer(payload.data));
-			}, [])
+		eventBus.on(
+			EVENTS.ON_TIMER_TICK,
+			React.useCallback(
+				(payload: { data: ITimer }) => {
+					dispatch(updateTimer(payload.data));
+				},
+				[dispatch],
+			),
 		);
 
-		eventBus.on(EVENTS.UPDATE_FIELD, React.useCallback((payload: any) => {
-			dispatch(updateField(payload.field));
-		}, []));
+		eventBus.on(
+			EVENTS.UPDATE_FIELD,
+			React.useCallback(
+				(payload: any) => {
+					dispatch(updateField(payload.field));
+				},
+				[dispatch],
+			),
+		);
 
-		eventBus.on(EVENTS.UPDATE_TURN_FIELD, React.useCallback((payload: any) => {
-			dispatch(updateField(payload.field));
-		}, []));
+		eventBus.on(
+			EVENTS.UPDATE_TURN_FIELD,
+			React.useCallback(
+				(payload: any) => {
+					dispatch(updateField(payload.field));
+				},
+				[dispatch],
+			),
+		);
 
-		eventBus.on(EVENTS.UPDATE_TURN_LETTERS, React.useCallback((payload: any) => {
-			updateFieldLetters(payload.dropppedLetters);
-		}, []));
+		eventBus.on(
+			EVENTS.UPDATE_TURN_LETTERS,
+			React.useCallback((payload: any) => {
+				updateFieldLetters(payload.dropppedLetters);
+			}, []),
+		);
 
-		eventBus.on(EVENTS.UPDATE_TURN_WORDS, React.useCallback((payload: any) => {
-			dispatch(updateWords(payload.words));
-		}, []))
+		eventBus.on(
+			EVENTS.UPDATE_TURN_WORDS,
+			React.useCallback(
+				(payload: any) => {
+					dispatch(updateWords(payload.words));
+				},
+				[dispatch],
+			),
+		);
 
 		const onCreateGame = () => {
 			eventBus.emit(EVENTS.CREATE_GAME, {
@@ -97,7 +123,17 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			return null;
 		}
 
-		return <View game={gameState} fieldLetters={fieldLetters} userId={user!.id} onCreateGame={onCreateGame} onAddLetter={onAddLetter} onRemoveLetter={onRemoveLetter} />;
+		return (
+			<View
+				key={gameId}
+				game={gameState}
+				fieldLetters={fieldLetters}
+				userId={user!.id}
+				onCreateGame={onCreateGame}
+				onAddLetter={onAddLetter}
+				onRemoveLetter={onRemoveLetter}
+			/>
+		);
 	}
 
 	GameModel.displayName = 'GameModel';

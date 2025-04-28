@@ -88,10 +88,6 @@ eventBus.on(EVENTS.ON_FINISH_GAME, (payload) => {
 	emitAll(EVENTS.ON_FINISH_GAME, payload);
 });
 
-eventBus.on(EVENTS.UPDATE_FIELD, payload => {
-	emitAll(EVENTS.UPDATE_FIELD, payload);
-});
-
 eventBus.on(EVENTS.UPDATE_TURN_FIELD, payload => {
 	emitAll(EVENTS.UPDATE_TURN_FIELD, payload);
 });

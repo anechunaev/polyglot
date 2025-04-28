@@ -142,9 +142,27 @@ export class Controller {
 		});
 	};
 
-	public onNextTurn = (payload: INextTurnPayload) => {
-		this.games[payload.gameId].instance.nextTurn(payload.turn, payload.secret);
+	public onNextTurn = (sessionId: SessionId, payload: any) => {
+		Object.keys(this.games).forEach(gameId => {
+			const gameInstance = this.games[gameId].instance;
+			const { sessions } = gameInstance;
+
+			if (sessions.indexOf(sessionId) !== -1) {
+				gameInstance.nextTurn(payload.turn, payload.secret);
+			}
+		});
 	};
+
+	public onChangeLetters = (sessionId: SessionId, payload: any) => {
+		Object.keys(this.games).forEach(gameId => {
+			const gameInstance = this.games[gameId].instance;
+			const { sessions } = gameInstance;
+
+			if (sessions.indexOf(sessionId) !== -1) {
+				gameInstance.changeLetters(payload.letters);
+			}
+		});
+	}
 
 	private async createGame(sessionId: SessionId, { settings, user }: { settings: ISettings; user: IUser }) {
 		const gameSettings = {

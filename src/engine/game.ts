@@ -1,4 +1,5 @@
 import uuid4 from 'uuid4';
+import { emit } from 'process';
 import { ITimerInstance, Timer } from '../server/services/Timer';
 import type { IDictionary } from '../server/services/dictionary';
 import type {
@@ -61,6 +62,7 @@ export interface IGame {
 	sessions: string[];
 	addLetter: (payload: IAddLetter) => void;
 	removeLetter: (payload: IRemoveLetter) => void;
+	changeLetters: (letters: string[]) => void;
 }
 
 export class GameEngine implements IGame {
@@ -446,6 +448,52 @@ export class GameEngine implements IGame {
 		}
 
 		return newLetters;
+	}
+
+	public changeLetters(letters: string[]) {
+		const playerLetters = this.state.players[this.state.activePlayer].letters;
+		const newLetters = this.letters.getRandomLetters(letters.length);
+
+		letters.forEach((letter, i) => {
+			const newLetter = newLetters[i];
+			const prevLetterIndex = playerLetters.indexOf(letter);
+
+			if (typeof newLetter !== 'undefined') {
+				// replace for a new one
+				this.state.players[this.state.activePlayer].letters.splice(prevLetterIndex, 1, newLetter);
+			} else {
+				// just delete letter
+				this.state.players[this.state.activePlayer].letters.splice(prevLetterIndex, 1);
+			}
+		});
+
+		this.state.letters = this.letters.getLetters();
+
+		// clear all field letters that were put during the current turn
+		if (this.state.turn?.droppedLetters && this.state.turn?.droppedLetters.length) {
+			this.state.turn.droppedLetters.forEach(letterId => {
+				this.state.field.forEach((fieldRow, y) => {
+					fieldRow.forEach((fieldCell, x) => {
+						if (fieldCell === letterId) {
+							this.state.field[y][x] = this._initialField[y][x];
+						}
+					});
+				});
+			});
+
+			this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD,  { field: this.state.field, sessions: this.sessions });
+		}
+
+		// just in case clear all current's turn data
+		this.state.turn = {
+			droppedLetters: [],
+			words: []
+		};
+
+		this.eventBus.emit(EVENTS.UPDATE_LETTERS, { letters: this.state.letters, sessions: this.sessions });
+
+		// force new turn
+		this.nextTurn();
 	}
 
 	public nextTurn() {

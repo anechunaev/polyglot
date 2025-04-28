@@ -38,12 +38,14 @@ export function connect(controller: any) {
 		socket.on(EVENTS.ON_NEXT_TURN, (payload) => {
 			const sessionId = socket.handshake.headers['x-session-id'];
 
-			controller.onNextTurn(payload);
+			controller.onNextTurn(sessionId, payload);
 		});
 
-		// socket.on(EVENTS.ON_NEXT_TURN, (payload: any) => {
-		// 	controller.onGameEmit(EVENTS.ON_NEXT_TURN, payload);
-		// });
+		socket.on(EVENTS.CHANGE_LETTERS, (payload) => {
+			const sessionId = socket.handshake.headers['x-session-id'];
+
+			controller.onChangeLetters(sessionId, payload);
+		});
 
 		next();
 	}

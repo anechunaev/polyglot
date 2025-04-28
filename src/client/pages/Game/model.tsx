@@ -46,10 +46,6 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			dispatch(updatePlayers(data.game.players));
 		};
 
-		const onNextTurn = () => {
-			eventBus.emit(EVENTS.ON_NEXT_TURN, { gameId });
-		};
-
 		eventBus.on(
 			EVENTS.UPDATE_LETTERS,
 			React.useCallback(
@@ -85,16 +81,6 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			React.useCallback(
 				(payload: { data: ITimer }) => {
 					dispatch(updateTimer(payload.data));
-				},
-				[dispatch],
-			),
-		);
-
-		eventBus.on(
-			EVENTS.UPDATE_FIELD,
-			React.useCallback(
-				(payload: any) => {
-					dispatch(updateField(payload.field));
 				},
 				[dispatch],
 			),
@@ -143,19 +129,28 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			eventBus.emit(EVENTS.REMOVE_LETTER, payload);
 		};
 
+		const onNextTurn = () => {
+			eventBus.emit(EVENTS.ON_NEXT_TURN);
+		};
+
+		const onChangeLetters = (selectedLetters: string[]) => {
+			eventBus.emit(EVENTS.CHANGE_LETTERS, {letters: selectedLetters});
+		};
+
 		if (!user) {
 			return null;
 		}
 
 		return (
 			<View
-				onNextTurn={onNextTurn}
 				game={gameState}
 				fieldLetters={fieldLetters}
 				userId={user!.id}
 				onCreateGame={onCreateGame}
 				onAddLetter={onAddLetter}
 				onRemoveLetter={onRemoveLetter}
+				onNextTurn={onNextTurn}
+				onChangeLetters={onChangeLetters}
 			/>
 		);
 	}

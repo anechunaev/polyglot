@@ -54,6 +54,10 @@ function PlaterLettersView({classes, field, playerLetters, fieldLetters, onRemov
 		}
 	};
 
+    if (!playerLetters) {
+        return null;
+    }
+
     return (
         <div className={classes.lettersContainer}>
             {playerLetters?.map((letterId: string, i: number) => {

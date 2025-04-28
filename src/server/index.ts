@@ -104,6 +104,14 @@ eventBus.on(EVENTS.UPDATE_TURN_WORDS, payload => {
 	emitAll(EVENTS.UPDATE_TURN_WORDS, payload);
 });
 
+eventBus.on(EVENTS.UPDATE_LETTERS, payload => {
+	emitAll(EVENTS.UPDATE_LETTERS, payload);
+});
+
+eventBus.on(EVENTS.UPDATE_PLAYERS, payload => {
+	emitAll(EVENTS.UPDATE_PLAYERS, payload);
+});
+
 io.use(connect(controller));
 
 const server = app.listen(env.port, env.host, () => {

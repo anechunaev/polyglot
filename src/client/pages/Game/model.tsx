@@ -38,12 +38,36 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 			if (data.game.turn?.droppedLetters && data.game.turn?.droppedLetters.length) {
 				updateFieldLetters(data.game.turn.droppedLetters);
 			}
+
 			updateGameid(data.gameId);
 
 			dispatch(updateLetters({ ...data.game.letters }));
 			dispatch(updateActivePlayer(data.game.activePlayer));
 			dispatch(updatePlayers(data.game.players));
 		};
+
+		const onNextTurn = () => {
+			eventBus.emit(EVENTS.ON_NEXT_TURN, { gameId });
+		};
+
+		eventBus.on(
+			EVENTS.UPDATE_LETTERS,
+			React.useCallback(
+				(payload: any) => {
+					dispatch(updateLetters({ ...payload.letters }));
+				},
+				[dispatch],
+			),
+		);
+		eventBus.on(
+			EVENTS.UPDATE_PLAYERS,
+			React.useCallback(
+				(payload: any) => {
+					dispatch(updatePlayers(payload.players));
+				},
+				[dispatch],
+			),
+		);
 
 		eventBus.on(EVENTS.CREATE_GAME, React.useCallback(loadGame, [dispatch]));
 
@@ -125,7 +149,7 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 
 		return (
 			<View
-				key={gameId}
+				onNextTurn={onNextTurn}
 				game={gameState}
 				fieldLetters={fieldLetters}
 				userId={user!.id}

@@ -5,6 +5,7 @@ import { IProps as IViewProps } from './view';
 export interface IProps {
 	activePlayer?: IGameState["activePlayer"],
 	words: IWord[];
+	onNextTurn: () => void;
 	players: IGameState["players"]
 }
 

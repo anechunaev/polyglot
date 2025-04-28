@@ -2,7 +2,7 @@ import uuid4 from 'uuid4';
 import { ITimerInstance, Timer } from '../server/services/Timer';
 import type { ILettersService } from '../server/services/Letters';
 import type { Dictionary, IDictionary } from '../server/services/dictionary';
-import type { Letters, UserId, GameId, Field, IPlayer, ISpectator, IUser, IWords, IWord, IAddLetter, IRemoveLetter } from '../types';
+import type { Letters, UserId, GameId, Field, IPlayer, ISpectator, IUser, IWord, IWords, IAddLetter, IRemoveLetter } from '../types';
 import { generateFieldSchema } from './helpers';
 import type { EventBus } from '../controller/eventBus';
 import {
@@ -14,6 +14,7 @@ import {
 } from '../constants';
 import { LettersService } from '../server/services/Letters';
 import letterConfig from '../server/config/letters_rus.json';
+import { emit } from 'process';
 
 export interface IGameSettings {
 	timer: number;
@@ -21,7 +22,8 @@ export interface IGameSettings {
 }
 
 export interface ITurn {
-	words: IWords;
+	droppedLetters: string[];
+	words: IWord[];
 }
 
 export type IPrevTurn = ITurn;
@@ -40,7 +42,7 @@ export interface IState {
 	};
 	turn?: {
 		droppedLetters: string[];
-		words: IWords
+		words: IWord[]
 	}
 }
 
@@ -61,6 +63,7 @@ export class GameEngine implements IGame {
 	private state: IState;
 	private timer: ITimerInstance;
 	public id: GameId;
+	private letters: LettersService;
 	private _initialField: Field;
 	private max_score: number;
 	public eventBus: EventBus;
@@ -92,7 +95,7 @@ export class GameEngine implements IGame {
 			},
 			turn: {
 				droppedLetters: [],
-				words: {}
+				words: []
 			}
 		};
 
@@ -105,6 +108,7 @@ export class GameEngine implements IGame {
 		this.timer = timer;
 		this.max_score = settings.max_score;
 		this.eventBus = eventBus;
+		this.letters = lettersService;
 		this.dictionary = dictionary;
 		this._initialField = initialField;
 
@@ -119,12 +123,8 @@ export class GameEngine implements IGame {
 	}
 
 	public onTimerEnd() {
-		this.nextTurn(
-			{
-				words: {},
-			},
-			this.state.players[this.state.activePlayer].secret!,
-		);
+		this.timer.stop();
+		this.nextTurn();
 	}
 
 	// @TODO: todo!()
@@ -146,14 +146,14 @@ export class GameEngine implements IGame {
 			return { ...item, isValid, score, __debug: word };
 		});
 
-		console.log('=> WORDS: ', res);
+		this.state.turn!.words = res;
 
-		this.eventBus.emit(EVENTS.UPDATE_TURN_WORDS, {words: res, sessions: this.sessions});
+		console.log('=> WORDS: ', this.state.turn!.words);
+
+		this.eventBus.emit(EVENTS.UPDATE_TURN_WORDS, {words: this.state.turn!.words, sessions: this.sessions});
 	}
 
-	private validateWord = (word: string) => {
-		return this.dictionary.checkWord(word);
-	}
+	private validateWord = (word: string) => this.dictionary.checkWord(word)
 
 	private calculateWordScore = (word: IWord) => {
 		let [y, x] = word.start.split(';').map(Number);
@@ -181,7 +181,7 @@ export class GameEngine implements IGame {
 						letterPrice *= 2;
 						break;
 					default:
-						return null;
+						return undefined;
 				}
 			}
 
@@ -446,8 +446,52 @@ export class GameEngine implements IGame {
 		return newLetters;
 	}
 
-	public nextTurn(turn: ITurn, secret: string) {
-		// @TODO 
+	public nextTurn() {
+		const playerLetters = this.state.players[this.state.activePlayer].letters;
+		const letters = this.state.turn?.droppedLetters && this.letters.getRandomLetters(this.state.turn?.droppedLetters.length);
+		// mark new letters that were put out the stock
+		this.state.letters = this.letters.getLetters();
+
+		// give new letters for the current player
+		this.state.turn?.droppedLetters.forEach(dropppedLetter => {
+			const dropppedPlayerLetter = playerLetters.indexOf(dropppedLetter);
+
+			const newLetter = letters && letters.pop();
+
+			newLetter && this.state.players[this.state.activePlayer].letters.splice(dropppedPlayerLetter, 1, newLetter);
+		});
+
+		// calculate new score for the current player
+		const score = this.state.turn?.words.reduce<number>((acc, word) => {
+			acc += word.score!;
+			return acc;
+		}, 0);
+
+		this.state.players[this.state.activePlayer].score += score || 0;
+
+		// switch to the next player
+		const players = Object.keys(this.state.players);
+		const currentPlayerIndex = players.indexOf(this.state.activePlayer);
+
+		if (currentPlayerIndex === players.length) {
+			this.state.activePlayer = players[0];
+		}
+
+		this.state.turn = {
+			droppedLetters: [],
+			words: []
+		};
+
+		this.timer.stop();
+
+		this.eventBus.emit(EVENTS.UPDATE_PLAYERS, {players: this.state.players, sessions: this.sessions});
+		this.eventBus.emit(EVENTS.UPDATE_LETTERS, { letters: this.state.letters, sessions: this.sessions });
+		this.eventBus.emit(EVENTS.UPDATE_TURN_LETTERS, { dropppedLetters: this.state.turn?.droppedLetters, sessions: this.sessions });
+		this.eventBus.emit(EVENTS.UPDATE_TURN_WORDS,  {words: this.state.turn!.words, sessions: this.sessions});
+
+		//set new timer
+		this.timer = new Timer(DEFAULT_TIMER_VALUE_SEC, this.onTimerTick, this.onTimerEnd);
+		this.timer.start();
 	}
 
 	public onTimerTick = (time: number, total: number) => {

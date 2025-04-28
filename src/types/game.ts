@@ -9,9 +9,9 @@ export type ISearchParam = string;
 export interface IAddLetter {
 	letterId: string;
 	position: {
-		x: number,
-		y: number
-	}
+		x: number;
+		y: number;
+	};
 }
 
 export interface IRemoveLetter {
@@ -19,35 +19,36 @@ export interface IRemoveLetter {
 }
 
 export interface ITimer {
-    time: number;
-    total: number;
-};
+	time: number;
+	total: number;
+}
 
 export interface IWord {
-    start: string;
-    letterIds: LetterId[];
-    kind: 'vertical' | 'horizontal';
-    score?: number;
-    isValid?: boolean;
+	start: string;
+	letterIds: LetterId[];
+	kind: 'vertical' | 'horizontal';
+	score?: number;
+	isValid?: boolean;
+	isPrevious?: boolean;
 }
 
 export interface IWords {
-    [id: string]: IWord
+	[id: string]: IWord;
 }
 
 export interface IGameState {
-    activePlayer: UserId;
-    players: {
-        [playerId: string]: IPlayer
-    };
-    spectators: IUser[];
-    letters: Letters;
-    id: GameId;
-    words?: IWords;
-    field: Field
-    timer: ITimer;
-    turn?: {
+	activePlayer: UserId;
+	players: {
+		[playerId: string]: IPlayer;
+	};
+	spectators: IUser[];
+	letters: Letters;
+	id: GameId;
+	words?: IWords;
+	field: Field;
+	timer: ITimer;
+	turn?: {
 		droppedLetters: string[];
-		words: IWords
-	}
+		words: IWords;
+	};
 }

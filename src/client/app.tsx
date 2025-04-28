@@ -8,11 +8,11 @@ function App() {
 	return (
 		<NoSSR>
 			<EventBusContext.Consumer>
-				{eventBus => {
-						eventBus.connect();
+				{(eventBus) => {
+					eventBus.connect();
 
-						return <NoSSR><GamePage eventBus={eventBus} /></NoSSR>
-					}}
+					return <GamePage eventBus={eventBus} />;
+				}}
 			</EventBusContext.Consumer>
 		</NoSSR>
 	);

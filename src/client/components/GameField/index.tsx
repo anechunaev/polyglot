@@ -1,19 +1,20 @@
 import * as React from 'react';
 
-import View, { IProps as IViewProps } from './view';
-import { useAppSelector } from '../../hooks';
-import {  selectField} from '../../reducers';
-
-// import withStyles from '../withStyles';
+import View, { type IProps as IViewProps, IConnectedProps } from './view';
+import withStyles from '../withStyles';
 import styles from './styles.scss';
+import { useAppSelector } from '../../hooks';
+import { selectField, selectWords } from '../../reducers';
 
-// const FieldComponent = withStyles<IViewProps>(View, styles);
+export type IProps = IViewProps;
 
-const Field: React.FunctionComponent<any> = (props: any) => {
-    const field = useAppSelector(selectField);
+const StyledView = withStyles<IConnectedProps>(View, styles);
 
-    return <View field={field} {...props}/>
+function Field(props: IProps) {
+	const field = useAppSelector(selectField);
+	const words = useAppSelector(selectWords);
+
+	return <StyledView {...props} field={field} words={words} />;
 }
-Field.displayName = 'Field';
 
 export default Field;

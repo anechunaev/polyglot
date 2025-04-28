@@ -5,16 +5,16 @@ import Cell from '../Cell';
 import Timer from '../TurnTimer';
 import Button from '../Button';
 import Input from '../Input';
-import Score from "../Score";
+import Score from '../Score';
 import SearchIcon from './assets/search.svg';
 import type { IGameState, IWord } from '../../../types';
 import { PLAYER_DEFAULT_LETTERS_COUNT } from '../../../constants';
 
 export interface IProps {
-	activePlayer?: IGameState["activePlayer"];
+	activePlayer?: IGameState['activePlayer'];
 	onNextTurn: () => void;
 	words: IWord[];
-	players: IGameState["players"]
+	players: IGameState['players'];
 }
 
 export interface IEncapsulatedProps extends IProps {
@@ -24,14 +24,12 @@ export interface IEncapsulatedProps extends IProps {
 function SidebarView({ classes, activePlayer, players, words, onNextTurn }: IEncapsulatedProps) {
 	const renderActivePlayerLabel = () => {
 		if (!activePlayer) {
-			return null
+			return null;
 		}
 
-		const {name} = players[activePlayer];
-		return name && <span className={classes.activePlayerLabel}>Ход игрока {name}</span>
-	}
-
-	console.log('=> Words: ', words);
+		const { name } = players[activePlayer];
+		return name && <span className={classes.activePlayerLabel}>Ход игрока {name}</span>;
+	};
 
 	return (
 		<div className={classes.sidebar}>
@@ -46,7 +44,11 @@ function SidebarView({ classes, activePlayer, players, words, onNextTurn }: IEnc
 				<Button className={classes.button} onClick={() => {}}>
 					Замена букв
 				</Button>
-				<Button disabled={(words && words.some(word => !word.isValid)) || false} className={classes.button} onClick={onNextTurn}>
+				<Button
+					disabled={(words && words.some((word) => !word.isValid)) || false}
+					className={classes.button}
+					onClick={onNextTurn}
+				>
 					Завершить ход
 				</Button>
 			</div>
@@ -63,5 +65,8 @@ function SidebarView({ classes, activePlayer, players, words, onNextTurn }: IEnc
 }
 
 SidebarView.displayName = 'SidebarView';
+SidebarView.defaultProps = {
+	activePlayer: undefined,
+};
 
 export default SidebarView;

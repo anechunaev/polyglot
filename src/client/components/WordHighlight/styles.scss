@@ -1,0 +1,138 @@
+@use '../../theme/palette.scss';
+
+$letter-size: 40px;
+$letter-radius: 5px;
+$letter-border-width: 3px;
+$score-size: 10px;
+
+.highlight {
+	position: absolute;
+	left: 0;
+	top: 0;
+	z-index: 1;
+	border-radius: $letter-radius;
+	pointer-events: none;
+
+	&::before,
+	&::after {
+		content: '';
+		position: absolute;
+		display: block;
+		width: 0;
+		height: 0;
+		border-width: ($letter-radius + $letter-border-width) / 2;
+		border-style: solid;
+	}
+}
+
+.vertical {
+	.score {
+		width: calc(100% + $letter-border-width * 2);
+		height: $score-size;
+		top: -$score-size - $letter-border-width;
+		left: -$letter-border-width;
+		border-radius: ($letter-radius + $letter-border-width) ($letter-radius + $letter-border-width) 0 0;
+	}
+
+	&::before {
+		top: -$letter-border-width;
+		left: -$letter-border-width;
+	}
+	&::after {
+		top: -$letter-border-width;
+		right: -$letter-border-width;
+	}
+}
+
+.horizontal {
+	.score {
+		width: $score-size;
+		height: calc(100% + $letter-border-width * 2);
+		left: -$score-size - $letter-border-width;
+		top: -$letter-border-width;
+		border-radius: ($letter-radius + $letter-border-width) 0 0 ($letter-radius + $letter-border-width);
+		writing-mode: sideways-lr;
+	}
+
+	&::before {
+		top: -$letter-border-width;
+		left: -$letter-border-width;
+	}
+	&::after {
+		bottom: -$letter-border-width;
+		left: -$letter-border-width;
+	}
+}
+
+.valid {
+	outline: $letter-border-width solid var(--color-green-600);
+	z-index: 2;
+
+	.score {
+		background-color: var(--color-green-600);
+	}
+
+	&.vertical::before {
+		border-color: var(--color-green-600) transparent transparent var(--color-green-600);
+	}
+	&.vertical::after {
+		border-color: var(--color-green-600) var(--color-green-600) transparent transparent;
+	}
+	&.horizontal::before {
+		border-color: var(--color-green-600) transparent transparent var(--color-green-600);
+	}
+	&.horizontal::after {
+		border-color: transparent transparent var(--color-green-600) var(--color-green-600);
+	}
+}
+
+.invalid {
+	outline: $letter-border-width solid var(--color-red-600);
+	z-index: 3;
+
+	.score {
+		background-color: var(--color-red-600);
+	}
+
+	&.vertical::before {
+		border-color: var(--color-red-600) transparent transparent var(--color-red-600);
+	}
+	&.vertical::after {
+		border-color: var(--color-red-600) var(--color-red-600) transparent transparent;
+	}
+	&.horizontal::before {
+		border-color: var(--color-red-600) transparent transparent var(--color-red-600);
+	}
+	&.horizontal::after {
+		border-color: transparent transparent var(--color-red-600) var(--color-red-600);
+	}
+}
+
+.previous {
+	outline: $letter-border-width solid var(--color-violet-600);
+	z-index: 3;
+
+	.score {
+		background-color: var(--color-violet-600);
+	}
+
+	&.vertical::before {
+		border-color: var(--color-violet-600) transparent transparent var(--color-violet-600);
+	}
+	&.vertical::after {
+		border-color: var(--color-violet-600) var(--color-violet-600) transparent transparent;
+	}
+	&.horizontal::before {
+		border-color: var(--color-violet-600) transparent transparent var(--color-violet-600);
+	}
+	&.horizontal::after {
+		border-color: transparent transparent var(--color-violet-600) var(--color-violet-600);
+	}
+}
+
+.score {
+	position: absolute;
+	color: var(--color-white);
+	font: 400 8px/10px Arial, sans-serif;
+	text-align: center;
+}

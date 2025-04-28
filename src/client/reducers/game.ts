@@ -38,6 +38,7 @@ export const gameSlice = createSlice({
 export const { updateLetters, updateTimer, updateActivePlayer, updatePlayers, updateField, updateWords } = gameSlice.actions;
 
 export const selectLetter = (state: { game: IGameState | Record<string, any> }, letterId: string) => state?.game?.letters[letterId];
+export const selectLetters = (state: {game: IGameState | Record<string, any>}) => state?.game.letters;
 export const selectTimer = (state:  { game: IGameState | Record<string, any> }) => state?.game?.timer;
 export const selectActivePlayer = (state: {game: IGameState | Record<string, any>}) => state.game.activePlayer
 export const selectPlayers = (state:  {game: IGameState | Record<string, any>}) => state?.game?.players;

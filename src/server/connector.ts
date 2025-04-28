@@ -35,6 +35,12 @@ export function connect(controller: any) {
 			controller.onRemoveLetter(sessionId, payload);
 		});
 
+		socket.on(EVENTS.ON_NEXT_TURN, (payload) => {
+			const sessionId = socket.handshake.headers['x-session-id'];
+
+			controller.onNextTurn(payload);
+		});
+
 		// socket.on(EVENTS.ON_NEXT_TURN, (payload: any) => {
 		// 	controller.onGameEmit(EVENTS.ON_NEXT_TURN, payload);
 		// });

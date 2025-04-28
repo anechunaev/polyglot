@@ -9,12 +9,12 @@ import styles from './styles.scss';
 
 const Component = Model(withStyles<IProps>(View, styles));
 
-const Sidebar: React.FunctionComponent<any> = () => {
+const Sidebar: React.FunctionComponent<any> = (props) => {
     const activePlayer = useAppSelector(selectActivePlayer);
     const players = useAppSelector(selectPlayers);
     const words = useAppSelector(selectWords);
 
-    return <Component activePlayer={activePlayer} players={players} words={words}/>
+    return <Component activePlayer={activePlayer} players={players} words={words} {...props} />
 };
 
 Sidebar.displayName = 'Sidebar';

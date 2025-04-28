@@ -17,9 +17,10 @@ export interface IProps {
 	onCreateGame: () => void;
 	onAddLetter: (payload: { letterId: string, position: { x: number; y: number }, cellId: UniqueIdentifier }) => void;
 	onRemoveLetter: (payload: { letterId: string }) => void;
+	onChangeLetters: (selectedLetters: string[]) => void;
 }
 
-function GamePage({ game, fieldLetters, onCreateGame, userId, classes, onAddLetter, onRemoveLetter, onNextTurn }: IProps) {
+function GamePage({ game, fieldLetters, onCreateGame, userId, classes, onAddLetter, onRemoveLetter, onNextTurn, onChangeLetters }: IProps) {
 	const [selectedLetters, setSelectedLetters] = React.useState<string[]>([]);
 
 	const mouseSensor = useSensor(MouseSensor, {
@@ -27,6 +28,10 @@ function GamePage({ game, fieldLetters, onCreateGame, userId, classes, onAddLett
 			distance: 10,
 		},
 	});
+
+	const handleChangeLetters = () => {
+		onChangeLetters(selectedLetters);
+	}
 
 	const sensors = useSensors(mouseSensor);
 
@@ -83,7 +88,7 @@ function GamePage({ game, fieldLetters, onCreateGame, userId, classes, onAddLett
 		<div className={classes.game}>
 			<DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd} sensors={sensors}>
 				<GameField fieldLetters={fieldLetters} />
-				<Sidebar onNextTurn={onNextTurn} />
+				<Sidebar onNextTurn={onNextTurn} onChangeLetters={handleChangeLetters} />
 				{createPortal(<PlayerLetters selectedLetters={selectedLetters} setSelectedLetters={setSelectedLetters} fieldLetters={fieldLetters} onRemoveLetter={onRemoveLetter} />, document.body)}
 			</DndContext>
 		</div>

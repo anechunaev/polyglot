@@ -13,6 +13,7 @@ import { PLAYER_DEFAULT_LETTERS_COUNT } from '../../../constants';
 export interface IProps {
 	activePlayer?: IGameState['activePlayer'];
 	onNextTurn: () => void;
+	onChangeLetters: () => void;
 	words: IWord[];
 	players: IGameState['players'];
 }
@@ -21,7 +22,7 @@ export interface IEncapsulatedProps extends IProps {
 	classes: Record<string, string>;
 }
 
-function SidebarView({ classes, activePlayer, players, words, onNextTurn }: IEncapsulatedProps) {
+function SidebarView({ classes, activePlayer, players, words, onNextTurn, onChangeLetters }: IEncapsulatedProps) {
 	const renderActivePlayerLabel = () => {
 		if (!activePlayer) {
 			return null;
@@ -41,7 +42,7 @@ function SidebarView({ classes, activePlayer, players, words, onNextTurn }: IEnc
 				))}
 			</Field>
 			<div className={classes.buttons}>
-				<Button className={classes.button} onClick={() => {}}>
+				<Button className={classes.button} onClick={onChangeLetters}>
 					Замена букв
 				</Button>
 				<Button

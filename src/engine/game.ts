@@ -127,11 +127,6 @@ export class GameEngine implements IGame {
 		return Object.keys(this.state.players);
 	}
 
-	public onTimerEnd() {
-		this.timer.stop();
-		this.nextTurn();
-	}
-
 	// @TODO: todo!()
 
 	// private nextTurn = () => {
@@ -553,6 +548,33 @@ export class GameEngine implements IGame {
 
 	public onTimerTick = (time: number, total: number) => {
 		this.eventBus.emit(EVENTS.ON_TIMER_TICK, { gameId: this.id, data: { time, total }, sessions: this.sessions });
+	};
+
+	public onTimerEnd = () => {
+		// clear all field letters that were put during the current turn
+		if (this.state.turn?.droppedLetters && this.state.turn?.droppedLetters.length) {
+			this.state.turn.droppedLetters.forEach((letterId) => {
+				this.state.field.forEach((fieldRow, y) => {
+					fieldRow.forEach((fieldCell, x) => {
+						if (fieldCell === letterId) {
+							this.state.field[y][x] = this.initialField[y][x];
+						}
+					});
+				});
+			});
+
+			this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
+		}
+
+		// just in case clear all current's turn data
+		this.state.turn = {
+			droppedLetters: [],
+			words: [],
+		};
+
+		this.eventBus.emit(EVENTS.UPDATE_LETTERS, { letters: this.state.letters, sessions: this.sessions });
+
+		this.nextTurn();
 	};
 
 	public getState() {

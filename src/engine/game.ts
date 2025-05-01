@@ -1,5 +1,4 @@
 import uuid4 from 'uuid4';
-import { emit } from 'process';
 import { ITimerInstance, Timer } from '../server/services/Timer';
 import type { IDictionary } from '../server/services/dictionary';
 import type {
@@ -471,23 +470,23 @@ export class GameEngine implements IGame {
 
 		// clear all field letters that were put during the current turn
 		if (this.state.turn?.droppedLetters && this.state.turn?.droppedLetters.length) {
-			this.state.turn.droppedLetters.forEach(letterId => {
+			this.state.turn.droppedLetters.forEach((letterId) => {
 				this.state.field.forEach((fieldRow, y) => {
 					fieldRow.forEach((fieldCell, x) => {
 						if (fieldCell === letterId) {
-							this.state.field[y][x] = this._initialField[y][x];
+							this.state.field[y][x] = this.initialField[y][x];
 						}
 					});
 				});
 			});
 
-			this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD,  { field: this.state.field, sessions: this.sessions });
+			this.eventBus.emit(EVENTS.UPDATE_TURN_FIELD, { field: this.state.field, sessions: this.sessions });
 		}
 
 		// just in case clear all current's turn data
 		this.state.turn = {
 			droppedLetters: [],
-			words: []
+			words: [],
 		};
 
 		this.eventBus.emit(EVENTS.UPDATE_LETTERS, { letters: this.state.letters, sessions: this.sessions });

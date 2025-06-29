@@ -11,7 +11,7 @@ const Component = Model(
 );
 
 const Letter: React.FunctionComponent<any> = React.forwardRef(({letterId, ...rest}, ref) => {
-	const letter = useAppSelector(state => selectLetter(state, letterId));
+	const letter = useAppSelector(selectLetter(letterId));
 
 	return <Component ref={ref} letter={letter} {...rest} />
 })

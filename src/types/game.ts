@@ -1,6 +1,11 @@
 import type { UserId, IPlayer, IUser, Letters, LetterId } from './index';
 
-export type Field = (string | null)[][];
+export type Cell = {
+	bonus: 'l2' | 'w2' | 'l3' | 'w3' | null;
+	letterId: LetterId | null;
+}
+
+export type Field = Cell[][];
 
 export type GameId = string;
 
@@ -30,6 +35,7 @@ export interface IWord {
 	score?: number;
 	isValid?: boolean;
 	isPrevious?: boolean;
+	renderedWord: string;
 }
 
 export interface IWords {
@@ -44,11 +50,12 @@ export interface IGameState {
 	spectators: IUser[];
 	letters: Letters;
 	id: GameId;
-	words?: IWords;
+	words?: IWord[];
 	field: Field;
 	timer: ITimer;
 	turn?: {
 		droppedLetters: string[];
 		words: IWords;
 	};
+	allVisibleLettersMap: Letters;
 }

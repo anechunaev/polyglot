@@ -5,10 +5,10 @@ import store from './store';
 import App from './app';
 
 document.addEventListener("DOMContentLoaded", () => {
-    const container = document.getElementById("app");
-    hydrateRoot(container!, (
-	<Provider store={store}>
-		<App />
-	</Provider>
-    ));
+	const container = document.getElementById("app");
+	hydrateRoot(container!, (
+		<Provider store={store}>
+			<App />
+		</Provider>
+	));
 });

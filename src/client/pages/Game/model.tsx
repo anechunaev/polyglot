@@ -10,6 +10,7 @@ import {
 	updatePlayers,
 	updateField,
 	updateWords,
+	updateLetterDeck,
 } from '../../reducers';
 
 export interface IProps {
@@ -32,7 +33,7 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 		const loadGame = (payload: any) => {
 			const data: { game: IGameState; gameId: string } = JSON.parse(payload);
 
-			updateGameState(() => ({ ...data.game }));
+			updateGameState(data.game);
 			dispatch(updateField(data.game.field));
 
 			if (data.game.turn?.droppedLetters && data.game.turn?.droppedLetters.length) {
@@ -41,16 +42,20 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 
 			updateGameid(data.gameId);
 
-			dispatch(updateLetters({ ...data.game.letters }));
+			dispatch(updateLetters(data.game.allVisibleLettersMap));
 			dispatch(updateActivePlayer(data.game.activePlayer));
 			dispatch(updatePlayers(data.game.players));
 		};
+
+		const updateLetterInfo = (letterId: string, deck: 'stock' | 'player' | 'field', position?: { x: number; y: number }) => {
+			dispatch(updateLetterDeck({ letterId, deck, position }));
+		}
 
 		eventBus.on(
 			EVENTS.UPDATE_LETTERS,
 			React.useCallback(
 				(payload: any) => {
-					dispatch(updateLetters({ ...payload.letters }));
+					dispatch(updateLetters(payload.letters));
 				},
 				[dispatch],
 			),
@@ -146,6 +151,7 @@ function Model(View: React.ComponentType<Omit<IViewProps, 'classes'>>): React.Co
 				game={gameState}
 				fieldLetters={fieldLetters}
 				userId={user!.id}
+				updateLetterInfo={updateLetterInfo}
 				onCreateGame={onCreateGame}
 				onAddLetter={onAddLetter}
 				onRemoveLetter={onRemoveLetter}

@@ -8,27 +8,19 @@ import DroppableCell from '../DroppableCell';
 import WordHighlight from '../WordHighlight';
 
 export interface IProps {
-	fieldLetters: string[];
+	fieldLetters: string[]; // LetterId[]
 }
 
 export interface IConnectedProps extends IProps {
 	field: IField;
-	words: IWord[];
+	words?: IWord[];
 }
 
 export interface IEncapsulatedProps extends IConnectedProps {
 	classes: Record<string, string>;
 }
 
-function FieldView({ classes, fieldLetters, field, words }: IEncapsulatedProps) {
-	const renderLetter = (letterId: string) => {
-		if (fieldLetters.includes(letterId)) {
-			return null;
-		}
-
-		return <Letter key={h32(letterId, 0xabcd).toString()} letterId={letterId} />;
-	};
-
+function FieldView({ classes, field, words }: IEncapsulatedProps) {
 	const wordsList = words?.reduce((acc, word) => {
 		acc.push(<WordHighlight key={h32(word.letterIds.join(','), 0xabcd).toString()} {...word} />);
 		return acc;
@@ -36,27 +28,26 @@ function FieldView({ classes, fieldLetters, field, words }: IEncapsulatedProps) 
 
 	return (
 		<Field>
-			{(field as ICellProps['bonus'][][]).map((row, index) => (
+			{(field).map((row, index) => (
 				<div key={h32(`${JSON.stringify(row) + index}row`, 0xabcd).toString()} className={classes.row}>
-					{row.map((value, i) => {
-						const id = i.toString() + index.toString();
+					{row.map((cell, i) => {
+						const id = `${i}-${index}`;
 						const position = {
 							x: i,
 							y: index,
 						};
 
-						const isLetterId = value && !isNaN(Number(value));
-						const isDisabledCell = !!(isLetterId && fieldLetters.includes(value));
-
 						return (
 							<DroppableCell
 								id={id}
-								disabled={isDisabledCell}
+								disabled={Boolean(cell.letterId)}
 								position={position}
-								key={h32(`${(value && !isLetterId ? value : '') + id}dr-cell`, 0xabcd).toString()}
-								bonus={value && !isLetterId ? value : null}
+								key={h32(`${(cell.bonus || '') + id}dr-cell`, 0xabcd).toString()}
+								bonus={cell.bonus}
 							>
-								{isLetterId && renderLetter(value as unknown as string)}
+								{!!cell.letterId && (
+									<Letter key={h32(cell.letterId, 0xabcd).toString()} letterId={cell.letterId} />
+								)}
 							</DroppableCell>
 						);
 					})}

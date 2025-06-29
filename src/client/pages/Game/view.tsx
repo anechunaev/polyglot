@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
 import { DndContext, MouseSensor, useSensor, useSensors, DragEndEvent, DragStartEvent, UniqueIdentifier } from '@dnd-kit/core';
-import type { IGameState, UserId, IWord } from '../../../types';
+import type { IGameState, UserId, IWord, Letters } from '../../../types';
 import Sidebar from '../../components/Sidebar';
 import GameField from '../../components/GameField';
 import PlayerLetters from '../../components/PlayerLetters';
@@ -13,6 +13,7 @@ export interface IProps {
 	game: IGameState | null;
 	userId: UserId;
 	fieldLetters: string[];
+	updateLetterInfo: (letterId: string, deck: 'stock' | 'player' | 'field', position?: { x: number; y: number }) => void;
 	onNextTurn: () => void;
 	onCreateGame: () => void;
 	onAddLetter: (payload: { letterId: string, position: { x: number; y: number }, cellId: UniqueIdentifier }) => void;
@@ -20,7 +21,7 @@ export interface IProps {
 	onChangeLetters: (selectedLetters: string[]) => void;
 }
 
-function GamePage({ game, fieldLetters, onCreateGame, userId, classes, onAddLetter, onRemoveLetter, onNextTurn, onChangeLetters }: IProps) {
+function GamePage({ game, fieldLetters, onCreateGame, userId, classes, onAddLetter, onRemoveLetter, onNextTurn, onChangeLetters, updateLetterInfo }: IProps) {
 	const [selectedLetters, setSelectedLetters] = React.useState<string[]>([]);
 
 	const mouseSensor = useSensor(MouseSensor, {
@@ -31,6 +32,7 @@ function GamePage({ game, fieldLetters, onCreateGame, userId, classes, onAddLett
 
 	const handleChangeLetters = () => {
 		onChangeLetters(selectedLetters);
+		setSelectedLetters([]);
 	}
 
 	const sensors = useSensors(mouseSensor);
@@ -50,20 +52,11 @@ function GamePage({ game, fieldLetters, onCreateGame, userId, classes, onAddLett
 
 	const handleDragEnd = ({ over, active }: DragEndEvent) => {
 		const letterId = active.id as string;
-		const letter = game!.letters[letterId];
 
 		if (over) {
-			let prevPosition: { x: number; y: number };
-			if (letter.located.in === 'field') {
-				prevPosition = { ...letter.located.position };
-			}
-
 			const { position } = over.data.current as any;
 
-			letter.located = {
-				in: 'field',
-				position,
-			};
+			updateLetterInfo(letterId, 'field', position);
 
 			if (fieldLetters.includes(letterId)) {
 				onRemoveLetter({letterId});

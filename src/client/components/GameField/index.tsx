@@ -14,7 +14,13 @@ function Field(props: IProps) {
 	const field = useAppSelector(selectField);
 	const words = useAppSelector(selectWords);
 
-	return <StyledView {...props} field={field} words={words} />;
+	return (
+		<StyledView
+			{...props}
+			field={field}
+			words={words}
+		/>
+	);
 }
 
 export default Field;

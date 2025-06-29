@@ -21,27 +21,6 @@ export const bonuses: Record<string, string[]> = {
 };
 
 function CellView({ classes, bonus, children, style, onClick }: React.PropsWithoutRef<IEncapsulatedProps>, ref: any) {
-	const renderBonus = () => {
-		const content = bonuses[bonus!];
-		return (
-			<div className={classes.bonusContainer}>
-				{content.map((item, i) => (
-					<span key={h32(`${item + i}cell`, 0xabcd).toString()}>{item}</span>
-				))}
-			</div>
-		);
-	};
-
-	const renderContent = () => {
-		if (children) {
-			return children;
-		}
-		if (bonus) {
-			return renderBonus();
-		}
-
-		return null;
-	};
 	return (
 		<div
 			ref={ref}
@@ -51,7 +30,14 @@ function CellView({ classes, bonus, children, style, onClick }: React.PropsWitho
 				[classes[bonus || ''] || '']: true,
 			})}
 		>
-			{renderContent()}
+			{!!bonuses[bonus || ''] && (
+				<div className={classes.bonusContainer}>
+					{bonuses[bonus!].map((item, i) => (
+						<span key={h32(`${item + i}cell`, 0xabcd).toString()}>{item}</span>
+					))}
+				</div>
+			)}
+			{children}
 		</div>
 	);
 }
